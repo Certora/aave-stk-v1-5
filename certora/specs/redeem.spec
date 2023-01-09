@@ -62,3 +62,37 @@ rule redeemDuringPostSlashing(address to, uint256 amount){
     assert !lastReverted;
 
 }
+
+rule cooldownCorrectness(method f)
+filtered { 
+    f-> f.selector != initialize(address,address,address,uint256,uint256).selector &&
+        f.selector != setCooldownSeconds(uint256).selector 
+}
+{
+    env e;
+    calldataarg args;
+    address user = e.msg.sender;
+    require(user != 0 && user != currentContract);
+    require(e.block.timestamp > getCooldownSeconds() + UNSTAKE_WINDOW());
+    require(getCooldownSeconds() > 0);
+
+    uint256 cooldownBefore = stakersCooldowns(e.msg.sender);
+
+    require(e.block.timestamp > cooldownBefore + getCooldownSeconds());
+    require(e.block.timestamp - (cooldownBefore + getCooldownSeconds()) <= UNSTAKE_WINDOW());
+
+    mathint windowBefore = cooldownBefore + getCooldownSeconds() + UNSTAKE_WINDOW() - e.block.timestamp;
+
+    f(e, args);
+
+    uint256 cooldownAfter = stakersCooldowns(e.msg.sender);
+    mathint windowAfter = ((cooldownAfter + getCooldownSeconds()) > e.block.timestamp 
+        ? 0
+        : cooldownAfter + getCooldownSeconds() + UNSTAKE_WINDOW() - e.block.timestamp);
+
+    assert windowAfter <= windowBefore;
+
+
+
+
+}

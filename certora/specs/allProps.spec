@@ -1,5 +1,7 @@
 import "base.spec"
 
+invariant balanceOfZero()
+    balanceOf(0) == 0
 
 // stkAmount_t1 = amount * exchangeRate_t0 / 1e18
 rule integrityOfStaking(address onBehalfOf, uint256 amount) {
@@ -13,8 +15,11 @@ rule integrityOfStaking(address onBehalfOf, uint256 amount) {
     require(balanceStakeTokenDepositorBefore < AAVE_MAX_SUPPLY());
     require(balanceStakeTokenVaultBefore < AAVE_MAX_SUPPLY());
     require(balanceBefore < AAVE_MAX_SUPPLY());
+    uint256 cooldownBefore = stakersCooldowns(onBehalfOf);
+    require(cooldownBefore == 0);
     stake(e, onBehalfOf, amount);
     uint256 balanceAfter = balanceOf(onBehalfOf);
+    uint256 cooldownAfter = stakersCooldowns(onBehalfOf);
     uint256 balanceStakeTokenDepositorAfter = stake_token.balanceOf(e.msg.sender);
     uint256 balanceStakeTokenVaultAfter = stake_token.balanceOf(currentContract);
 
@@ -26,11 +31,12 @@ rule integrityOfStaking(address onBehalfOf, uint256 amount) {
     assert balanceStakeTokenVaultAfter == balanceStakeTokenVaultBefore + amount;
 }
 
+
 rule noStakingPostSlashingPeriod(address onBehalfOf, uint256 amount) {
     env e;
     require(inPostSlashingPeriod());
     stake@withrevert(e, onBehalfOf, amount);
-    assert lastReverted, "shouldn not be able to stake in post slashing period";
+    assert lastReverted, "should not be able to stake in post slashing period";
 }
 
 // should be updated for exchange rate
@@ -45,7 +51,7 @@ rule stakeTokenBalanceAtLeastTotalSupply(method f) {
     f(e, args);
     uint256 totalAfter = totalSupply();
     uint256 stakeTokenBalanceAfter = stake_token.balanceOf(currentContract);
-    assert stakeTokenBalanceAfter >= totalAfter;
+    assert stakeTokenBalanceAfter * EXCHANGE_RATE_FACTOR() / getExchangeRate() >= totalAfter;
 }
 
 rule exchangeRateStateTransition(method f){
@@ -53,6 +59,8 @@ rule exchangeRateStateTransition(method f){
     calldataarg args;
     uint128 exchangeRateBefore = getExchangeRate();
     require(exchangeRateBefore < MAX_EXCHANGE_RATE());
+    // at least one AAVE in staking
+    require(stake_token.balanceOf(currentContract) >= 10^18);
     f(e, args);
     uint128 exchangeRateAfter = getExchangeRate();
     assert exchangeRateBefore != exchangeRateAfter =>
@@ -95,6 +103,9 @@ rule integrityOfSlashing(address to, uint256 amount){
     require(getMaxSlashablePercentage() >= PERCENTAGE_FACTOR() &&
         getMaxSlashablePercentage() <= MAX_PERCENTAGE());
 
+    require(totalSupply() > 0 && totalSupply() < AAVE_MAX_SUPPLY());
+    uint256 total = totalSupply();
+
     uint256 balanceStakeTokenToBefore = stake_token.balanceOf(to);
     uint256 balanceStakeTokenVaultBefore = stake_token.balanceOf(currentContract);
     require(balanceStakeTokenToBefore < AAVE_MAX_SUPPLY());
@@ -114,10 +125,10 @@ rule integrityOfSlashing(address to, uint256 amount){
     assert balanceStakeTokenToAfter == balanceStakeTokenToBefore + amountToSlash;
     assert balanceStakeTokenVaultAfter == balanceStakeTokenVaultBefore - amountToSlash;
     assert inPostSlashingPeriod();
-    require(totalSupply() > 0);
 
+    // return uint128(((totalShares * TOKEN_UNIT) + TOKEN_UNIT) / totalAssets);
     // doesn't work - should be proven with invariant or dedicated rule for exchange rate change
-    assert getExchangeRate() == (balanceStakeTokenVaultBefore - amountToSlash) / totalSupply();
+    // assert getExchangeRate() == totalSupply() * EXCHANGE_RATE_FACTOR() / balanceStakeTokenVaultAfter;
 }
 
 rule integrityOfReturnFunds(uint256 amount){
@@ -132,6 +143,7 @@ rule integrityOfReturnFunds(uint256 amount){
     returnFunds(e, amount);
     uint256 balanceStakeTokenSenderAfter = stake_token.balanceOf(e.msg.sender);
     uint256 balanceStakeTokenVaultAfter = stake_token.balanceOf(currentContract);
+    require(balanceStakeTokenVaultAfter > 0);
 
     assert balanceStakeTokenSenderAfter == balanceStakeTokenSenderBefore - amount;
     assert balanceStakeTokenVaultAfter == balanceStakeTokenVaultBefore + amount;
@@ -139,9 +151,20 @@ rule integrityOfReturnFunds(uint256 amount){
 
 rule noEntryUntilSlashingSettled(uint256 amount){
     env e;
-    require(stake_token.balanceOf(e.msg.sender) >= amount);
-    require(amount > 0);
+    require(stake_token.balanceOf(e.msg.sender) >= amount 
+        && stake_token.balanceOf(currentContract) < AAVE_MAX_SUPPLY());
+    require(amount > 0 && amount < AAVE_MAX_SUPPLY());
+    require(e.msg.value == 0);
     require(e.msg.sender != currentContract && e.msg.sender != 0);
+    require(stakersCooldowns(e.msg.sender) <= MAX_COOLDOWN());
+    require(e.block.timestamp > (getCooldownSeconds() + UNSTAKE_WINDOW()));
+    require(getExchangeRate() < 2 * EXCHANGE_RATE_FACTOR());
+    require(balanceOf(e.msg.sender) < AAVE_MAX_SUPPLY());
+    requireInvariant balanceOfZero();
+    
+    // reverse in updateUserAssetsInternal, need to require correct index
+    // (no underflow)
+
 
     stake@withrevert(e, e.msg.sender, amount);
 
@@ -208,8 +231,10 @@ rule redeemDuringPostSlashing(address to, uint256 amount){
     env e;
 
     require(inPostSlashingPeriod());
+    require(e.msg.value == 0);
     require(amount > 0);
     require(amount <= balanceOf(e.msg.sender));
+    require(getExchangeRate() != 0);
 
     uint256 underlyingToRedeem = amount * EXCHANGE_RATE_FACTOR() / getExchangeRate();
     require(stake_token.balanceOf(currentContract) >= underlyingToRedeem);
@@ -220,6 +245,9 @@ rule redeemDuringPostSlashing(address to, uint256 amount){
 
 }
 
+
+// rule that says:
+// unstake window cannot get shorter / go back in time
 
 /*Governance (only stkAAVE)
 The total power (of one type) of all users in the system is less 

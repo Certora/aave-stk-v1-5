@@ -80,3 +80,9 @@
 - airdropped tokens (not through _stake_ or _returnFunds_) are not considered
   for the exchange rate, i.e. not mutualized
 
+
+
+- delegatee of 0 is 0 (with preserve maybe)
+- if count of snapshots is 0 then for all addresses their delegatee is not you
+(with ghost delegatees)
+- prove t using the previous 2

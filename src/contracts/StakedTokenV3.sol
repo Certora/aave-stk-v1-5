@@ -472,7 +472,7 @@ contract StakedTokenV3 is StakedTokenV2, IStakedTokenV3, RoleManager {
     require(amount != 0, 'INVALID_ZERO_AMOUNT');
 
     uint256 balanceOfTo = balanceOf(to);
-
+    
     uint256 accruedRewards = _updateUserAssetInternal(
       to,
       address(this),

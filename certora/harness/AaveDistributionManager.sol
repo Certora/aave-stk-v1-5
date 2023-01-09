@@ -123,6 +123,9 @@ contract AaveDistributionManager is IAaveDistributionManager {
     uint256 accruedRewards = 0;
 
     uint256 newIndex = _updateAssetStateInternal(asset, assetData, totalStaked);
+    
+    // avoiding unrealistic situation
+    // require(newIndex < 16000000 * 10^18, 'new index is too high');
 
     if (userIndex != newIndex) {
       if (stakedByUser != 0) {

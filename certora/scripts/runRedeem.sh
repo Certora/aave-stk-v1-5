@@ -14,7 +14,7 @@ certoraRun harness/StakedAaveV3.sol \
     --verify StakedAaveV3:specs/redeem.spec \
     $RULE \
     --solc solc8.1 \
-    --staging \
+    --staging master \
     --optimistic_loop \
     --loop_iter 3 \
     --send_only \
