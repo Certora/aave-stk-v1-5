@@ -1,0 +1,60 @@
+diff -ruN ../src/.gitignore .gitignore
+--- ../src/.gitignore	1970-01-01 02:00:00
++++ .gitignore	2023-01-10 16:57:37
+@@ -0,0 +1,2 @@
++*
++!.gitignore
+diff -ruN ../src/contracts/StakedTokenV2.sol contracts/StakedTokenV2.sol
+--- ../src/contracts/StakedTokenV2.sol	2023-01-10 13:08:51
++++ contracts/StakedTokenV2.sol	2023-01-10 17:05:28
+@@ -117,11 +117,12 @@
+     uint256 amountToReceive,
+     address toAddress,
+     uint256 toBalance
+-  ) public view virtual returns (uint256);
++  ) public view virtual override returns (uint256);
+ 
+   /// @inheritdoc IStakedTokenV2
+   function getTotalRewardsBalance(address staker)
+     external
++    override
+     view
+     returns (uint256)
+   {
+diff -ruN ../src/contracts/StakedTokenV3.sol contracts/StakedTokenV3.sol
+--- ../src/contracts/StakedTokenV3.sol	2023-01-10 17:06:44
++++ contracts/StakedTokenV3.sol	2023-01-10 17:10:58
+@@ -143,7 +143,7 @@
+   }
+ 
+   /// @inheritdoc IStakedTokenV3
+-  function previewStake(uint256 assets) public view returns (uint256) {
++  function previewStake(uint256 assets) public override view returns (uint256) {
+     return (assets * _currentExchangeRate) / TOKEN_UNIT;
+   }
+ 
+@@ -329,13 +329,14 @@
+   /// @inheritdoc IStakedTokenV3
+   function setCooldownSeconds(uint256 cooldownSeconds)
+     external
++    override
+     onlyCooldownAdmin
+   {
+     _setCooldownSeconds(cooldownSeconds);
+   }
+ 
+   /// @inheritdoc IStakedTokenV3
+-  function getCooldownSeconds() external view returns (uint256) {
++  function getCooldownSeconds() external override view returns (uint256) {
+     return _cooldownSeconds;
+   }
+ 
+@@ -472,7 +473,7 @@
+     require(amount != 0, 'INVALID_ZERO_AMOUNT');
+ 
+     uint256 balanceOfTo = balanceOf(to);
+-    
++
+     uint256 accruedRewards = _updateUserAssetInternal(
+       to,
+       address(this),
