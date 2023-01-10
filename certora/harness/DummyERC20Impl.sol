@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
-pragma solidity 0.8.1;
+pragma solidity 0.8.17;
 //pragma solidity 0.8.15;
-import {IERC20} from '../../../src/interfaces/IERC20.sol';
+import {IERC20} from '../../src/interfaces/IERC20.sol';
 
 contract DummyERC20Impl is IERC20 {
 
