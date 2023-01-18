@@ -113,3 +113,16 @@ invariant snapshotCountZero2(address user)
             require(e.msg.sender != 0);
         }
     }
+
+/*Governance (only stkAAVE)
+The total power (of one type) of all users in the system is less 
+or equal than the sum of balances of all stkAAVE holders (total staked):
+
+The governance voting and proposition power of an address is 
+defined by the powerAtBlock adjusted by the exchange rate at block:
+ 
+
+If an account is not receiving delegation of power (one type) from anybody, 
+and that account is not delegating that power to anybody, the power of that 
+account must be equal to its proportional AAVE balance.
+*/

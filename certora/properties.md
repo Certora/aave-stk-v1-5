@@ -69,3 +69,22 @@ Not implemented
 #### cooldown
 - [v] `cooldown()` correctness: updated with block timestamp
 
+
+M:
+- [v] rewards getter returns the same amount of max rewards the user deserve (if the user was to withdraw max) - add actual change of balance - `rewardsGetterEquivalentClaim`
+- [v] User index <= Global index - `PersonalIndexLessOrEqualGlobalIndex`
+- [v] Global Index monotonically increasing - `indexesMonotonicallyIncrease`
+- [v] Personal Index monotonically increasing - `indexesMonotonicallyIncrease`
+
+- [x] Rewards monotonically increasing (except for claim methods) - check why configure changes retroactively - `rewardsMonotonicallyIncrease`
+- [x] Slashing monotonically increase EXCHANGE_RATE - `slashingIncreaseExchangeRate`
+- [x] Returning funds monotonically decrease EXCHANGE_RATE - `returnFundsDecreaseExchangeRate`
+- [x] ExchangeRate never zero - see confluence + inv1, 2 and 3 - `exchangeRateNeverZero`
+- [x] slashing 0 and returningFunds of 0 should be the same and same as the beginning - `slashAndReturnFundsOfZeroDoesntChangeExchangeRate`
+
+- [*] previewRedeem of all shares <= balance of staked-token - `allSharesAreBacked`
+- [*] AAVE.bal(this) >= stkAAVE.totalSupply/EXCHANGE_RATE - `allStakedAaveBacked`
+- [*] Who decreased deserved rewards? (claim rew) - `whoDecreasedDeservedRewards`
+
+- [] previewRedeem returns the same underlying amount as actual redeem 
+- [] previewStake returns the same share amount as actual stake

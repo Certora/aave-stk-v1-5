@@ -276,19 +276,185 @@ filtered {
 }
 
 
-// rule that says:
-// unstake window cannot get shorter / go back in time
 
-/*Governance (only stkAAVE)
-The total power (of one type) of all users in the system is less 
-or equal than the sum of balances of all stkAAVE holders (total staked):
 
-The governance voting and proposition power of an address is 
-defined by the powerAtBlock adjusted by the exchange rate at block:
- 
 
-If an account is not receiving delegation of power (one type) from anybody, 
-and that account is not delegating that power to anybody, the power of that 
-account must be equal to its proportional AAVE balance.
-*/
 
+
+
+
+
+
+
+
+
+
+
+// rewards getter returns the same amount of max rewards the user deserve (if the user was to withdraw max)
+rule rewardsGetterEquivalentClaim(method f, env e, address to, address from) {
+    require to != REWARDS_VAULT();
+    uint256 deservedRewards = getTotalRewardsBalance(e, from);
+    uint256 _receiverBalance = reward_token.balanceOf(to);
+
+    uint256 claimedAmount = claimRewardsOnBehalf(e, from, to, max_uint256);
+    
+    uint256 receiverBalance_ = reward_token.balanceOf(to);
+    
+    assert(deservedRewards == claimedAmount);
+    assert(receiverBalance_ == _receiverBalance + claimedAmount);
+}
+
+// Rewards monotonically increasing for non claim functions
+rule rewardsMonotonicallyIncrease(method f, address user) {
+    env e;
+    uint256 _deservedRewards = getTotalRewardsBalance(e, user);
+    
+    calldataarg args;
+    f(e, args);
+    
+    uint256 deservedRewards_ = getTotalRewardsBalance(e, user);
+    
+    assert(!claimRewards_funcs(f) => deservedRewards_ >= _deservedRewards);
+}
+
+/* Remove Before Publishing
+
+// Rewards monotonically increasing for non claim functions
+rule rewardsMonotonicallyIncrease2(method f, address user) {
+    env e;
+    uint256 _deservedRewards = stakerRewardsToClaim(user);
+    
+    calldataarg args;
+    f(e, args);
+    
+    uint256 deservedRewards_ = stakerRewardsToClaim(user);
+    
+    assert(!claimRewards_funcs(f) => deservedRewards_ >= _deservedRewards);
+}*/
+
+// Disclaimer the emission manager can change the rewards 
+// Rewards monotonically increasing for non claim functions
+rule whoDecreasedDeservedRewards(method f, address user) {
+    env e;
+    uint256 _deservedRewards = getTotalRewardsBalance(e, user);
+    
+    calldataarg args;
+    f(e, args);
+    
+    uint256 deservedRewards_ = getTotalRewardsBalance(e, user);
+    
+    assert(deservedRewards_ <= _deservedRewards);
+}
+
+// The personal index of a user on a specific asset is at most equal to the global index of the same asset
+// User's personal index is derived from the global index, and therefore cannot exceed it
+invariant PersonalIndexLessOrEqualGlobalIndex(address asset, address user)
+    getUserPersonalIndex(asset, user) <= getAssetGlobalIndex(asset)
+
+// Global index monotonically increasing
+rule indexesMonotonicallyIncrease(method f, address asset, address user) {
+    requireInvariant PersonalIndexLessOrEqualGlobalIndex(asset, user);
+    uint256 _globalIndex = getAssetGlobalIndex(asset);
+    uint256 _personalIndex = getUserPersonalIndex(asset, user);
+    
+    env e; calldataarg args;
+    f(e, args);
+    
+    uint256 globalIndex_ = getAssetGlobalIndex(asset);
+    uint256 personalIndex_ = getUserPersonalIndex(asset, user);
+    
+    assert(globalIndex_ >= _globalIndex);
+    assert(personalIndex_ >= _personalIndex);
+}
+
+// Shares value cannot exceed actual locked amount of staked token
+invariant allSharesAreBacked()
+    previewRedeem(totalSupply()) <= stake_token.balanceOf(currentContract)
+
+// Slashing increases the exchange rate
+rule slashingIncreaseExchangeRate(address receiver, uint256 amount) {
+    env e; calldataarg args;
+    
+    uint128 _ExchangeRate = getExchangeRate();
+    
+    slash(e, args);
+    
+    uint128 ExchangeRate_ = getExchangeRate();
+    
+    assert(ExchangeRate_ >= _ExchangeRate);
+}
+
+// Returning funds decreases the exchange rate
+rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
+    env e; calldataarg args;
+    uint128 _ExchangeRate = getExchangeRate();
+
+    returnFunds(e, args);
+    
+    uint128 ExchangeRate_ = getExchangeRate();
+    
+    assert(ExchangeRate_ <= _ExchangeRate);
+}
+
+//
+rule exchangeRateNeverZero(method f) {
+    env e; calldataarg args;
+    uint128 _ER = getExchangeRate();
+    require _ER != 0;
+    
+    f(e, args);
+
+    uint128 ER_ = getExchangeRate();
+
+    assert ER_ != 0;
+}
+
+
+/* Remove before publishing 
+// rule exchangeRateNeverZero2(method f) {
+//     env e; calldataarg args;
+//     require f.selector == slash(address,uint256).selector => (totalSupply() + 1) * EXCHANGE_RATE_FACTOR() < max_uint128;
+//     uint128 _ER = getExchangeRate();
+//     require _ER != 0;
+    
+//     f(e, args);
+
+//     uint128 ER_ = getExchangeRate();
+
+//     assert ER_ != 0;
+// }
+
+// rule exchangeRateNeverZero3(method f, uint256 amt) {
+//     env e; calldataarg args;
+//     require (totalSupply() + 1) * EXCHANGE_RATE_FACTOR() < max_uint128;
+//     require (totalSupply() + 1) * EXCHANGE_RATE_FACTOR() - previewRedeem(totalSupply()) >= amt;
+//     uint128 _ER = getExchangeRate();
+//     require _ER != 0;
+    
+//     returnFunds(e, amt);
+
+//     uint128 ER_ = getExchangeRate();
+
+//     assert ER_ != 0;
+// } */
+
+// All shares are backed by at enough underlying token
+invariant allStakedAaveBacked(env e)
+    stake_token.balanceOf(currentContract) >= totalSupply()/getExchangeRate()
+
+
+rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f){
+    env e;
+    address dest; uint256 amt = 0;
+    uint128 _ER = getExchangeRate();
+    storage initialStorage = lastStorage;
+    
+    slash(e, dest, amt);
+    uint128 ER_AfterSlash = getExchangeRate();
+    
+    returnFunds(e, amt) at initialStorage;
+    uint128 ER_AfterReturnFunds = getExchangeRate();
+
+    assert(ER_AfterSlash == ER_AfterReturnFunds);
+    assert(ER_AfterReturnFunds == _ER);
+}

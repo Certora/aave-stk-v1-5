@@ -1,4 +1,5 @@
 using DummyERC20Impl as stake_token
+using DummyERC20Impl as reward_token
 
 methods {
 
@@ -17,6 +18,11 @@ methods {
     getExchangeRate() returns (uint128) envfree
     inPostSlashingPeriod() returns (bool) envfree
     getMaxSlashablePercentage() returns (uint256) envfree
+    getAssetGlobalIndex(address) returns (uint256) envfree
+    getUserPersonalIndex(address, address) returns (uint256) envfree
+    previewStake(uint256) returns (uint256) envfree
+    previewRedeem(uint256) returns (uint256) envfree
+
     // address, block, delegation type 
     _votingSnapshotsCounts(address) returns (uint256) envfree
 
@@ -44,3 +50,12 @@ definition MAX_COOLDOWN() returns uint256 = 2302683158; //20 years from now
 
 definition VOTING_POWER() returns uint8 = 0;
 definition PROPOSITION_POWER() returns uint8 = 1;
+
+
+definition claimRewards_funcs(method f) returns bool =
+    f.selector == claimRewards(address, uint256).selector ||
+    f.selector == claimRewardsOnBehalf(address, address, uint256).selector ||
+    f.selector == claimRewardsAndStake(address, uint256).selector ||
+    f.selector == claimRewardsAndStakeOnBehalf(address, address, uint256).selector ||
+    f.selector == claimRewardsAndRedeem(address, uint256, uint256).selector ||
+    f.selector == claimRewardsAndRedeemOnBehalf(address, address, uint256, uint256).selector;

@@ -3,19 +3,23 @@ then
     RULE="--rule $1"
 fi
 
-certoraRun certora/munged/contracts/StakedAaveV3.sol \
+certoraRun certora/harness/StakedAaveV3Harness.sol \
     certora/harness/DummyERC20Impl.sol \
     certora/harness/AaveGovernance.sol \
     certora/harness/GhoVariableDebt_Mock.sol \
-    --link StakedAaveV3:STAKED_TOKEN=DummyERC20Impl \
-    --link StakedAaveV3:REWARD_TOKEN=DummyERC20Impl \
-    --link StakedAaveV3:GHO_DEBT_TOKEN=GhoVariableDebt_Mock \
-    --link StakedAaveV3:_aaveGovernance=AaveGovernance \
-    --verify StakedAaveV3:certora/specs/allProps.spec \
+    certora/harness/RewardVault.sol \
+    --link StakedAaveV3Harness:STAKED_TOKEN=DummyERC20Impl \
+    --link StakedAaveV3Harness:REWARD_TOKEN=DummyERC20Impl \
+    --link StakedAaveV3Harness:GHO_DEBT_TOKEN=GhoVariableDebt_Mock \
+    --link StakedAaveV3Harness:_aaveGovernance=AaveGovernance \
+    --link StakedAaveV3Harness:REWARDS_VAULT=RewardVault \
+    --verify StakedAaveV3Harness:certora/specs/allProps.spec \
     $RULE \
     --solc solc8.17 \
     --staging \
     --optimistic_loop \
     --loop_iter 3 \
     --send_only \
-    --msg "all props" 
+    --method "claimRewardsAndRedeem(address,uint256,uint256)" \
+    --settings -t=600 \
+    --msg "all props $1" 
