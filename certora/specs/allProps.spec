@@ -1,7 +1,11 @@
 import "base.spec"
+import "invariants.spec"
 
-invariant balanceOfZero()
-    balanceOf(0) == 0
+use invariant balanceOfZero
+use invariant totalSupplyGreaterThanUserBalance
+use invariant PersonalIndexLessOrEqualGlobalIndex
+use invariant allSharesAreBacked
+
 
 // stkAmount_t1 = amount * exchangeRate_t0 / 1e18
 rule integrityOfStaking(address onBehalfOf, uint256 amount) {
@@ -275,21 +279,6 @@ filtered {
     assert windowAfter <= windowBefore;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // rewards getter returns the same amount of max rewards the user deserve (if the user was to withdraw max)
 rule rewardsGetterEquivalentClaim(method f, env e, address to, address from) {
     require to != REWARDS_VAULT();
@@ -360,11 +349,6 @@ rule whoDecreasedDeservedRewards(method f, address user) {
     assert(deservedRewards_ < _deservedRewards => claimRewards_funcs(f));
 }
 
-// The personal index of a user on a specific asset is at most equal to the global index of the same asset
-// User's personal index is derived from the global index, and therefore cannot exceed it
-invariant PersonalIndexLessOrEqualGlobalIndex(address asset, address user)
-    getUserPersonalIndex(asset, user) <= getAssetGlobalIndex(asset)
-
 // Global index monotonically increasing
 rule indexesMonotonicallyIncrease(method f, address asset, address user) {
     requireInvariant PersonalIndexLessOrEqualGlobalIndex(asset, user);
@@ -380,10 +364,6 @@ rule indexesMonotonicallyIncrease(method f, address asset, address user) {
     assert(globalIndex_ >= _globalIndex);
     assert(personalIndex_ >= _personalIndex);
 }
-
-// Shares value cannot exceed actual locked amount of staked token
-invariant allSharesAreBacked()
-    previewRedeem(totalSupply()) <= stake_token.balanceOf(currentContract)
 
 // Slashing increases the exchange rate
 rule slashingIncreaseExchangeRate(address receiver, uint256 amount) {
@@ -457,11 +437,13 @@ rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f){
 }
 
 // Preview redeem returns the same underlying amount to redeem as redeem (doing the same calculation)
-rule previewRedeemEquivalentRedeem(method f, env e, address to){
-    uint256 totalUnderlying = previewRedeem(totalSupply());
+rule previewRedeemEquivalentRedeem(method f, env e, address to, uint256 amount){
+    require balanceOf(e.msg.sender) == amount;
+    require currentContract != to;
+    uint256 totalUnderlying = previewRedeem(amount);
     uint256 _receiverBalance = stake_token.balanceOf(to);
 
-    redeem(e, to, totalSupply());
+    redeem(e, to, amount);
 
     uint256 receiverBalance_ = stake_token.balanceOf(to);
 
@@ -470,6 +452,7 @@ rule previewRedeemEquivalentRedeem(method f, env e, address to){
 
 // Preview stake returns the same shares amount to stake (doing the same calculation)
 rule previewStakeEquivalentStake(method f, env e, address to, uint256 amount){
+    requireInvariant totalSupplyGreaterThanUserBalance(to);
     uint256 amountOfShares = previewStake(amount);
     uint256 _receiverBalance = balanceOf(to);
 

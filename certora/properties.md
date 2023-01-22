@@ -75,6 +75,8 @@ M:
 - [v] User index <= Global index - `PersonalIndexLessOrEqualGlobalIndex`
 - [v] Global Index monotonically increasing - `indexesMonotonicallyIncrease`
 - [v] Personal Index monotonically increasing - `indexesMonotonicallyIncrease`
+- [v] previewStake returns the same share amount as actual stake - `previewStakeEquivalentStake`
+- [v] previewRedeem returns the same underlying amount as actual redeem - `previewRedeemEquivalentRedeem`
 
 - [x] Rewards monotonically increasing (except for claim methods) - check why configure changes retroactively - `rewardsMonotonicallyIncrease`
 - [x] Slashing monotonically increase EXCHANGE_RATE - `slashingIncreaseExchangeRate`
@@ -85,5 +87,3 @@ M:
 
 - [*] previewRedeem of all shares <= balance of staked-token - `allSharesAreBacked`
 - [*] AAVE.bal(this) >= stkAAVE.totalSupply/EXCHANGE_RATE - `allStakedAaveBacked`
-- [*] previewRedeem returns the same underlying amount as actual redeem - `previewRedeemEquivalentRedeem`
-- [*] previewStake returns the same share amount as actual stake - `previewStakeEquivalentStake`

@@ -26,3 +26,49 @@ invariant exchangeRateCorrectness()
         }
     }
 
+// The balance of address zero is 0
+invariant balanceOfZero()
+    balanceOf(0) == 0
+
+    // The total supply amount of shares is greater or equal to any user's share balance
+invariant totalSupplyGreaterThanUserBalance(address user)
+    totalSupply() >= balanceOf(user)
+    {
+        preserved transferFrom(address from, address to, uint256 amount) with (env e2)
+        {
+            require balanceOf(from) + balanceOf(to) <= totalSupply();
+        }
+        preserved transfer(address to, uint256 amount) with (env e3)
+        {
+            require balanceOf(e3.msg.sender) + balanceOf(to) <= totalSupply();
+        }
+        preserved redeem(address to, uint256 amount) with (env e4)
+        {
+            require to == user;
+            require balanceOf(e4.msg.sender) + balanceOf(to) <= totalSupply();
+        }
+        preserved redeemOnBehalf(address from, address to, uint256 amount) with (env e5)
+        {
+            require to == user;
+            require balanceOf(from) + balanceOf(to) <= totalSupply();
+        }
+        preserved claimRewardsAndRedeem(address to, uint256 claimAmount, uint256 redeemAmount) with (env e6)
+        {
+            require to == user;
+            require balanceOf(e6.msg.sender) + balanceOf(to) <= totalSupply();
+        }
+        preserved claimRewardsAndRedeemOnBehalf(address from, address to, uint256 claimAmount, uint256 redeemAmount) with (env e7)
+        {
+            require to == user;
+            require balanceOf(from) + balanceOf(to) <= totalSupply();
+        }
+    }
+
+// The personal index of a user on a specific asset is at most equal to the global index of the same asset
+// User's personal index is derived from the global index, and therefore cannot exceed it
+invariant PersonalIndexLessOrEqualGlobalIndex(address asset, address user)
+    getUserPersonalIndex(asset, user) <= getAssetGlobalIndex(asset)
+
+// Shares value cannot exceed actual locked amount of staked token
+invariant allSharesAreBacked()
+    previewRedeem(totalSupply()) <= stake_token.balanceOf(currentContract)
