@@ -317,6 +317,21 @@ rule rewardsMonotonicallyIncrease(method f, address user) {
     assert(!claimRewards_funcs(f) => deservedRewards_ >= _deservedRewards);
 }
 
+// Rewards monotonically increasing for non claim functions
+rule collectedRewardsMonotonicallyIncrease(method f, address from, address to) {
+    env e;
+    storage initialStorage = lastStorage;
+    
+    uint256 _collectedRewards = claimRewardsOnBehalf(e, from, to, max_uint256);
+    
+    env e2; calldataarg args;
+    configureAssets(e2, args) at initialStorage;
+    
+    uint256 collectedRewards_ = claimRewardsOnBehalf(e, from, to, max_uint256);
+    
+    assert(!claimRewards_funcs(f) => collectedRewards_ >= _collectedRewards);
+}
+
 /* Remove Before Publishing
 
 // Rewards monotonically increasing for non claim functions
@@ -332,7 +347,6 @@ rule rewardsMonotonicallyIncrease2(method f, address user) {
     assert(!claimRewards_funcs(f) => deservedRewards_ >= _deservedRewards);
 }*/
 
-// Disclaimer the emission manager can change the rewards 
 // Rewards monotonically increasing for non claim functions
 rule whoDecreasedDeservedRewards(method f, address user) {
     env e;
@@ -343,7 +357,7 @@ rule whoDecreasedDeservedRewards(method f, address user) {
     
     uint256 deservedRewards_ = getTotalRewardsBalance(e, user);
     
-    assert(deservedRewards_ <= _deservedRewards);
+    assert(deservedRewards_ < _deservedRewards => claimRewards_funcs(f));
 }
 
 // The personal index of a user on a specific asset is at most equal to the global index of the same asset
@@ -396,7 +410,7 @@ rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
     assert(ExchangeRate_ <= _ExchangeRate);
 }
 
-//
+// Exchange rate shouldn't get to the value 0
 rule exchangeRateNeverZero(method f) {
     env e; calldataarg args;
     uint128 _ER = getExchangeRate();
@@ -410,19 +424,7 @@ rule exchangeRateNeverZero(method f) {
 }
 
 
-/* Remove before publishing 
-// rule exchangeRateNeverZero2(method f) {
-//     env e; calldataarg args;
-//     require f.selector == slash(address,uint256).selector => (totalSupply() + 1) * EXCHANGE_RATE_FACTOR() < max_uint128;
-//     uint128 _ER = getExchangeRate();
-//     require _ER != 0;
-    
-//     f(e, args);
-
-//     uint128 ER_ = getExchangeRate();
-
-//     assert ER_ != 0;
-// }
+//  Remove before publishing 
 
 // rule exchangeRateNeverZero3(method f, uint256 amt) {
 //     env e; calldataarg args;
@@ -436,12 +438,7 @@ rule exchangeRateNeverZero(method f) {
 //     uint128 ER_ = getExchangeRate();
 
 //     assert ER_ != 0;
-// } */
-
-// All shares are backed by at enough underlying token
-invariant allStakedAaveBacked(env e)
-    stake_token.balanceOf(currentContract) >= totalSupply()/getExchangeRate()
-
+// }
 
 rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f){
     env e;
@@ -457,4 +454,28 @@ rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f){
 
     assert(ER_AfterSlash == ER_AfterReturnFunds);
     assert(ER_AfterReturnFunds == _ER);
+}
+
+// Preview redeem returns the same underlying amount to redeem as redeem (doing the same calculation)
+rule previewRedeemEquivalentRedeem(method f, env e, address to){
+    uint256 totalUnderlying = previewRedeem(totalSupply());
+    uint256 _receiverBalance = stake_token.balanceOf(to);
+
+    redeem(e, to, totalSupply());
+
+    uint256 receiverBalance_ = stake_token.balanceOf(to);
+
+    assert(totalUnderlying == receiverBalance_ - _receiverBalance);
+}
+
+// Preview stake returns the same shares amount to stake (doing the same calculation)
+rule previewStakeEquivalentStake(method f, env e, address to, uint256 amount){
+    uint256 amountOfShares = previewStake(amount);
+    uint256 _receiverBalance = balanceOf(to);
+
+    stake(e, to, amount);
+
+    uint256 receiverBalance_ = balanceOf(to);
+
+    assert(amountOfShares == receiverBalance_ - _receiverBalance);
 }

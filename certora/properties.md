@@ -78,13 +78,12 @@ M:
 
 - [x] Rewards monotonically increasing (except for claim methods) - check why configure changes retroactively - `rewardsMonotonicallyIncrease`
 - [x] Slashing monotonically increase EXCHANGE_RATE - `slashingIncreaseExchangeRate`
-- [x] Returning funds monotonically decrease EXCHANGE_RATE - `returnFundsDecreaseExchangeRate`
+- [x] Returning funds monotonically decrease EXCHANGE_RATE - `returnFundsDecreaseExchangeRate` - assuming the ratio is not greater than 10^20
 - [x] ExchangeRate never zero - see confluence + inv1, 2 and 3 - `exchangeRateNeverZero`
 - [x] slashing 0 and returningFunds of 0 should be the same and same as the beginning - `slashAndReturnFundsOfZeroDoesntChangeExchangeRate`
+- [x] Who decreased deserved rewards? (claim rew) - `whoDecreasedDeservedRewards`
 
 - [*] previewRedeem of all shares <= balance of staked-token - `allSharesAreBacked`
 - [*] AAVE.bal(this) >= stkAAVE.totalSupply/EXCHANGE_RATE - `allStakedAaveBacked`
-- [*] Who decreased deserved rewards? (claim rew) - `whoDecreasedDeservedRewards`
-
-- [] previewRedeem returns the same underlying amount as actual redeem 
-- [] previewStake returns the same share amount as actual stake
+- [*] previewRedeem returns the same underlying amount as actual redeem - `previewRedeemEquivalentRedeem`
+- [*] previewStake returns the same share amount as actual stake - `previewStakeEquivalentStake`

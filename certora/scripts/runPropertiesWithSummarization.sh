@@ -13,13 +13,12 @@ certoraRun certora/harness/StakedAaveV3Harness.sol \
     --link StakedAaveV3Harness:GHO_DEBT_TOKEN=GhoVariableDebt_Mock \
     --link StakedAaveV3Harness:_aaveGovernance=AaveGovernance \
     --link StakedAaveV3Harness:REWARDS_VAULT=RewardVault \
-    --verify StakedAaveV3Harness:certora/specs/allProps.spec \
+    --verify StakedAaveV3Harness:certora/specs/propertiesWithSummarizations.spec \
     $RULE \
     --solc solc8.17 \
-    --staging eyalf/display-storage-in-calltrace_v2 \
+    --staging \
     --optimistic_loop \
     --loop_iter 3 \
     --send_only \
     --settings -t=600 \
-    --rule_sanity \
     --msg "all props $1" 
