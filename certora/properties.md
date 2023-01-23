@@ -85,5 +85,5 @@ M:
 - [x] slashing 0 and returningFunds of 0 should be the same and same as the beginning - `slashAndReturnFundsOfZeroDoesntChangeExchangeRate`
 - [x] Who decreased deserved rewards? (claim rew) - `whoDecreasedDeservedRewards`
 
-- [*] previewRedeem of all shares <= balance of staked-token - `allSharesAreBacked`
+- [*] previewRedeem of all shares <= balance of staked-token - `allSharesAreBacked` - init changes ER, slash fails because ER overflow, returnFunds 
 - [*] AAVE.bal(this) >= stkAAVE.totalSupply/EXCHANGE_RATE - `allStakedAaveBacked`
