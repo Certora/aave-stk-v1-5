@@ -77,6 +77,7 @@ M:
 - [v] Personal Index monotonically increasing - `indexesMonotonicallyIncrease`
 - [v] previewStake returns the same share amount as actual stake - `previewStakeEquivalentStake`
 - [v] previewRedeem returns the same underlying amount as actual redeem - `previewRedeemEquivalentRedeem`
+- [v] totalSupply of shares GE balance of any user
 
 - [x] Rewards monotonically increasing (except for claim methods) - check why configure changes retroactively - `rewardsMonotonicallyIncrease`
 - [x] Slashing monotonically increase EXCHANGE_RATE - `slashingIncreaseExchangeRate`
@@ -84,6 +85,6 @@ M:
 - [x] ExchangeRate never zero - see confluence + inv1, 2 and 3 - `exchangeRateNeverZero`
 - [x] slashing 0 and returningFunds of 0 should be the same and same as the beginning - `slashAndReturnFundsOfZeroDoesntChangeExchangeRate`
 - [x] Who decreased deserved rewards? (claim rew) - `whoDecreasedDeservedRewards`
+- [x] previewRedeem of all shares <= balance of staked-token - `allSharesAreBacked` - init changes ER, slash fails because ER overflow, returnFunds 
 
-- [*] previewRedeem of all shares <= balance of staked-token - `allSharesAreBacked` - init changes ER, slash fails because ER overflow, returnFunds 
 - [*] AAVE.bal(this) >= stkAAVE.totalSupply/EXCHANGE_RATE - `allStakedAaveBacked`
