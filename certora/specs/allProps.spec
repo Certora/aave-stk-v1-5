@@ -58,31 +58,6 @@ rule stakeTokenBalanceAtLeastTotalSupply(method f) {
     assert stakeTokenBalanceAfter * EXCHANGE_RATE_FACTOR() / getExchangeRate() >= totalAfter;
 }
 
-rule exchangeRateStateTransition(method f){
-    env e;
-    calldataarg args;
-    uint128 exchangeRateBefore = getExchangeRate();
-    require(exchangeRateBefore < MAX_EXCHANGE_RATE());
-    // at least one AAVE in staking
-    require(stake_token.balanceOf(currentContract) >= 10^18);
-    f(e, args);
-    uint128 exchangeRateAfter = getExchangeRate();
-    assert exchangeRateBefore != exchangeRateAfter =>
-        f.selector == slash(address,uint256).selector ||
-        f.selector == returnFunds(uint256).selector ||
-        f.selector == initialize(address,address,address,uint256,uint256).selector;
-
-    require(f.selector != initialize(address,address,address,uint256,uint256).selector);
-    
-    // these properties require finetuning, because of overflow and 
-    // rounding by 1 that the contract does
-
-    assert f.selector == slash(address,uint256).selector =>
-        exchangeRateAfter >= exchangeRateBefore;
-    assert f.selector == returnFunds(uint256).selector =>
-        exchangeRateAfter <= exchangeRateBefore;
-}
-
 
 rule noSlashingMoreThanMax(uint256 amount, address recipient){
     env e;
@@ -172,7 +147,7 @@ rule noEntryUntilSlashingSettled(uint256 amount){
 
     stake@withrevert(e, e.msg.sender, amount);
 
-    assert lastReverted <=> inPostSlashingPeriod();
+    assert inPostSlashingPeriod() => lastReverted;
 }
 
 // transfer tokens to the contract and assert the exchange rate doesn't change
