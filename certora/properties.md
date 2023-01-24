@@ -77,14 +77,14 @@ M:
 - [v] Personal Index monotonically increasing - `indexesMonotonicallyIncrease`
 - [v] previewStake returns the same share amount as actual stake - `previewStakeEquivalentStake`
 - [v] previewRedeem returns the same underlying amount as actual redeem - `previewRedeemEquivalentRedeem`
-- [v] totalSupply of shares GE balance of any user
+- [v] totalSupply of shares GE balance of any user - `totalSupplyGreaterThanUserBalance`
 
-- [x] Rewards monotonically increasing (except for claim methods) - check why configure changes retroactively - `rewardsMonotonicallyIncrease`
-- [x] Slashing monotonically increase EXCHANGE_RATE - `slashingIncreaseExchangeRate`
-- [x] Returning funds monotonically decrease EXCHANGE_RATE - `returnFundsDecreaseExchangeRate` - assuming the ratio is not greater than 10^20
+
+- [x] Rewards monotonically increasing (except for claim methods) - `rewardsMonotonicallyIncrease` - configure changes deserved rewards retroactively
+- [x] Slashing monotonically increase EXCHANGE_RATE - `slashingIncreaseExchangeRate` - fails due to down cast. assuming the ratio is not greater than 10^20
+- [x] Returning funds monotonically decrease EXCHANGE_RATE - `returnFundsDecreaseExchangeRate` - 
 - [x] ExchangeRate never zero - see confluence + inv1, 2 and 3 - `exchangeRateNeverZero`
 - [x] slashing 0 and returningFunds of 0 should be the same and same as the beginning - `slashAndReturnFundsOfZeroDoesntChangeExchangeRate`
-- [x] Who decreased deserved rewards? (claim rew) - `whoDecreasedDeservedRewards`
-- [x] previewRedeem of all shares <= balance of staked-token - `allSharesAreBacked` - init changes ER, slash fails because ER overflow, returnFunds 
-
-- [*] AAVE.bal(this) >= stkAAVE.totalSupply/EXCHANGE_RATE - `allStakedAaveBacked`
+- [x] Who decreased deserved rewards? (claim rew) - `whoDecreasedDeservedRewards` - configure decreases deserved rewards
+- [x] previewRedeem of all shares <= balance of staked-token - `allSharesAreBacked` - init changes ER, slash fails because ER overflow, returnFunds fails because of ER overflow
+- [x] AAVE.bal(this) >= stkAAVE.totalSupply/EXCHANGE_RATE - `allStakedAaveBacked` - init changes ER, slash fails because ER overflow, returnFunds fails because of ER overflow

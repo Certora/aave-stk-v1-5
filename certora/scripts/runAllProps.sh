@@ -21,5 +21,4 @@ certoraRun certora/harness/StakedAaveV3Harness.sol \
     --loop_iter 3 \
     --send_only \
     --settings -t=600 \
-    --rule_sanity \
     --msg "all props $1" 

@@ -21,5 +21,4 @@ certoraRun certora/harness/StakedAaveV3Harness.sol \
     --loop_iter 3 \
     --send_only \
     --settings -t=600 \
-    --method "returnFunds(uint256)" \
     --msg "all props $1" 
