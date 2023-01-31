@@ -4,9 +4,28 @@ import "invariants.spec"
 use invariant balanceOfZero
 use invariant totalSupplyGreaterThanUserBalance
 use invariant PersonalIndexLessOrEqualGlobalIndex
-use invariant allSharesAreBacked
 
+/*
+    @Rule integrityOfStaking
+    @Description: successful stake function move amount of the stake token from the sender to the contract
+                  and increases the sender's shares balance accordinly.
+         
+    @Formula: 
+        {
+            balanceStakeTokenDepositorBefore := stake_token.balanceOf(msg.sender),
+            balanceStakeTokenVaultBefore := stake_token.balanceOf(currentContract),
+            balanceBefore := balanceOf(onBehalfOf)
+        }
+            stake(onBehalfOf, amount)
+        {
+            balanceOf(onBehalfOf) = balanceBefore + amount * currentExchangeRate / EXCHANGE_RATE_FACTOR,
+            stake_token.balanceOf(msg.sender) = balanceStakeTokenDepositorBefore - amount,
+            stake_token.balanceOf(currentContract) = balanceStakeTokenVaultBefore + amount
+        }
 
+    @Notes:
+    @Link:
+*/
 // stkAmount_t1 = amount * exchangeRate_t0 / 1e18
 rule integrityOfStaking(address onBehalfOf, uint256 amount) {
     env e;
@@ -35,7 +54,7 @@ rule integrityOfStaking(address onBehalfOf, uint256 amount) {
     assert balanceStakeTokenVaultAfter == balanceStakeTokenVaultBefore + amount;
 }
 
-
+// Rule to verify that no user can stake while in post-slashing period 
 rule noStakingPostSlashingPeriod(address onBehalfOf, uint256 amount) {
     env e;
     require(inPostSlashingPeriod());
@@ -43,7 +62,19 @@ rule noStakingPostSlashingPeriod(address onBehalfOf, uint256 amount) {
     assert lastReverted, "should not be able to stake in post slashing period";
 }
 
-// should be updated for exchange rate
+/*
+    @Rule stakeTokenBalanceAtLeastTotalSupply
+    @Description: Rule to verify that the contract holds enough stacked tokens proportionatly to the total supply.
+         
+    @Formula: 
+        <invoke any method f>
+        {
+            stake_token.balanceOf(currentContract) * EXCHANGE_RATE_FACTOR / ExchangeRate >= totalSupply
+        }
+
+    @Notes:
+    @Link:
+*/
 rule stakeTokenBalanceAtLeastTotalSupply(method f) {
     env e;
     calldataarg args;
@@ -58,7 +89,23 @@ rule stakeTokenBalanceAtLeastTotalSupply(method f) {
     assert stakeTokenBalanceAfter * EXCHANGE_RATE_FACTOR() / getExchangeRate() >= totalAfter;
 }
 
+/*
+    @Rule noSlashingMoreThanMax
+    @Description: Rule to verify that slashing can't exceed the available slashing amount.
+         
+    @Formula: 
+        {
+            vaultBalanceBefore := stake_token.balanceOf(currentContract),
+            maxSlashable := vaultBalanceBefore * MaxSlashablePercentage / PERCENTAGE_FACTOR
+        }
+            slash(recipient, amount)
+        {
+            vaultBalanceBefore - stake_token.balanceOf(currentContract) = maxSlashable
+        }
 
+    @Notes:
+    @Link:
+*/
 rule noSlashingMoreThanMax(uint256 amount, address recipient){
     env e;
     uint vaultBalanceBefore = stake_token.balanceOf(currentContract);
@@ -75,6 +122,26 @@ rule noSlashingMoreThanMax(uint256 amount, address recipient){
     assert vaultBalanceBefore - vaultBalanceAfter == maxSlashable;
 }
 
+/*
+    @Rule integrityOfSlashing
+    @Description: successful slash function increases the recipient balance by the slashed amount, 
+                  decreases the vaults balance by the same amount and turns on the postSlashing period flag.
+         
+    @Formula: 
+        {
+            recipientStakeTokenBalanceBefore := stake_token.balanceOf(recipient),
+            vaultStakeTokenBalanceBefore := stake_token.balanceOf(currentContract)
+        }
+            slash(recipient, amountToSlash)
+        {
+            stake_token.balanceOf(recipient) = recipientStakeTokenBalanceBefore + amountToSlash,
+            stake_token.balanceOf(currentContract) = vaultStakeTokenBalanceBefore - amountToSlash,
+            inPostSlashingPeriod = True
+        }
+
+    @Notes:
+    @Link:
+*/
 rule integrityOfSlashing(address to, uint256 amount){
     env e;
     require(amount < AAVE_MAX_SUPPLY());
@@ -110,6 +177,25 @@ rule integrityOfSlashing(address to, uint256 amount){
     // assert getExchangeRate() == totalSupply() * EXCHANGE_RATE_FACTOR() / balanceStakeTokenVaultAfter;
 }
 
+/*
+    @Rule integrityOfReturnFunds
+    @Description: successful returnFunds function decreases the sender balance by the returned amount and  
+                  increases the vaults balance by the same amount.
+         
+    @Formula: 
+        {
+            senderStakeTokenBalanceBefore := stake_token.balanceOf(msg.sender),
+            vaultStakeTokenBalanceBefore := stake_token.balanceOf(currentContract)
+        }
+            returnFunds(amount)
+        {
+            stake_token.balanceOf(msg.sender) = recipientStakeTokenBalanceBefore - amount,
+            stake_token.balanceOf(currentContract) = vaultStakeTokenBalanceBefore + amount
+        }
+
+    @Notes:
+    @Link:
+*/
 rule integrityOfReturnFunds(uint256 amount){
     env e;
     require(amount < AAVE_MAX_SUPPLY());
@@ -128,6 +214,21 @@ rule integrityOfReturnFunds(uint256 amount){
     assert balanceStakeTokenVaultAfter == balanceStakeTokenVaultBefore + amount;
 }
 
+/*
+    @Rule noEntryUntilSlashingSettled
+    @Description: Rule to verify that users can't stake while until slashing is settled (after post-slashing period).
+         
+    @Formula: 
+        {
+        }
+            stake@withrevert(msg.sender, amount)
+        {
+            inPostSlashingPeriod => stake function reverted.
+        }
+
+    @Notes:
+    @Link:
+*/
 rule noEntryUntilSlashingSettled(uint256 amount){
     env e;
     require(stake_token.balanceOf(e.msg.sender) >= amount 
@@ -150,7 +251,22 @@ rule noEntryUntilSlashingSettled(uint256 amount){
     assert inPostSlashingPeriod() => lastReverted;
 }
 
-// transfer tokens to the contract and assert the exchange rate doesn't change
+/*
+    @Rule airdropNotMutualized
+    @Description: Rule to verify that transfering tokens to the contract doesn't change the exchange rate.
+         
+    @Formula: 
+        {
+            exchangeRateBefore := getExchangeRate()
+        }
+            stake_token.transfer(currentContract, amount)
+        {
+            getExchangeRate() => exchangeRateBefore
+        }
+
+    @Notes:
+    @Link:
+*/
 rule airdropNotMutualized(uint256 amount){
     env e;
     uint256 exchangeRateBefore = getExchangeRate();
@@ -159,7 +275,24 @@ rule airdropNotMutualized(uint256 amount){
     assert exchangeRateBefore == exchangeRateAfter;
 }
 
-// if redeem succeeds, the cooldown is inside the unstake window
+/*
+    @Rule noRedeemOutOfUnstakeWindow
+    @Description: Succesful redeem function means that the user's timestamp in within the unstake window or it's a post slashing period.
+         
+    @Formula: 
+        {
+            cooldown := stakersCooldowns(msg.sender)
+        }
+            redeem(to, amount)
+        {
+            (inPostSlashingPeriod = true) ||
+            (block.timestamp > cooldown + getCooldownSeconds() &&
+            block.timestamp - (cooldown + getCooldownSeconds()) <= UNSTAKE_WINDOW)
+        }
+
+    @Notes:
+    @Link:
+*/
 rule noRedeemOutOfUnstakeWindow(address to, uint256 amount){
     env e;
 
@@ -172,6 +305,36 @@ rule noRedeemOutOfUnstakeWindow(address to, uint256 amount){
         e.block.timestamp - (cooldown + getCooldownSeconds()) <= UNSTAKE_WINDOW());   
 }
 
+
+/*
+    @Rule integrityOfRedeem
+    @Description: Succesful redeem function increases the stake token balance of the recipient by the redeemed amount
+                  and decreases the stake token balance of the the contract by the same amount. 
+                  In addition, the sender balance should decrease by the amount it wanted to redeem.
+         
+    @Formula: 
+        {
+            balanceStakeTokenToBefore := stake_token.balanceOf(recipient),
+            balanceStakeTokenVaultBefore := stake_token.balanceOf(currentContract),
+            balanceBefore := balanceOf(msg.sender)
+        }
+            redeem(recipient, amount)
+        {
+            if (amount > balanceBefore) {
+                amountToRedeem := balanceBefore * EXCHANGE_RATE_FACTOR / getExchangeRate();
+            } else {
+                amountToRedeem := amount * EXCHANGE_RATE_FACTOR / getExchangeRate();
+            }
+
+            stake_token.balanceOf(recipient) = balanceStakeTokenToBefore + amountToRedeem,
+            stake_token.balanceOf(currentContract) = balanceStakeTokenVaultBefore - amountToRedeem,
+            amount > balanceBefore => balanceOf(msg.sender) = 0,
+            amount <= balanceBefore => balanceOf(msg.sender) = balanceBefore - amount
+        }
+
+    @Notes:
+    @Link:
+*/
 rule integrityOfRedeem(address to, uint256 amount){
     env e;
     require(amount < AAVE_MAX_SUPPLY());
@@ -206,6 +369,7 @@ rule integrityOfRedeem(address to, uint256 amount){
 
 }
 
+// Rule to verify that users can redeem while in post-slashing period.
 rule redeemDuringPostSlashing(address to, uint256 amount){
     env e;
 
@@ -224,6 +388,25 @@ rule redeemDuringPostSlashing(address to, uint256 amount){
 
 }
 
+/*
+    @Rule cooldownCorrectness
+    @Description: Rule to verify the correctness of stakersCooldowns.
+         
+    @Formula: 
+        {
+            windowBefore := stakersCooldowns(msg.sender) + getCooldownSeconds() + UNSTAKE_WINDOW() - block.timestamp
+        }
+            <invoke any method f>
+        {
+            windowAfter := stakersCooldowns(msg.sender) + getCooldownSeconds + UNSTAKE_WINDOW() - block.timestamp,
+
+            (stakersCooldowns(msg.sender) + getCooldownSeconds()) <= block.timestamp => windowBefore >= windowAfter
+            (stakersCooldowns(msg.sender) + getCooldownSeconds()) > block.timestamp => windowBefore >= 0
+        }
+
+    @Notes:
+    @Link:
+*/
 rule cooldownCorrectness(method f)
 filtered { 
     f-> f.selector != initialize(address,address,address,uint256,uint256).selector &&
@@ -254,7 +437,24 @@ filtered {
     assert windowAfter <= windowBefore;
 }
 
-// rewards getter returns the same amount of max rewards the user deserve (if the user was to withdraw max)
+/*
+    @Rule rewardsGetterEquivalentClaim
+    @Description: Rewards getter returns the same amount of max rewards the user deserve (if the user was to withdraw max).
+         
+    @Formula: 
+        {
+            deservedRewards := getTotalRewardsBalance(from),
+            receiverBalanceBefore := reward_token.balanceOf(receiver)
+        }
+            claimedAmount := claimRewardsOnBehalf(from, receiver, max_uint256)
+        {
+            deservedRewards = claimedAmount,
+            reward_token.balanceOf(receiver) = receiverBalanceBefore + claimedAmount
+        }
+
+    @Notes:
+    @Link:
+*/
 rule rewardsGetterEquivalentClaim(method f, env e, address to, address from) {
     require to != REWARDS_VAULT();
     uint256 deservedRewards = getTotalRewardsBalance(e, from);
@@ -268,7 +468,28 @@ rule rewardsGetterEquivalentClaim(method f, env e, address to, address from) {
     assert(receiverBalance_ == _receiverBalance + claimedAmount);
 }
 
-// Rewards monotonically increasing for non claim functions
+/*
+    @Rule rewardsMonotonicallyIncrease
+    @Description: Rewards monotonically increasing for non claim functions.
+         
+    @Formula: 
+        {
+            deservedRewardsBefore := getTotalRewardsBalance(user)
+        }
+            <invoke any method f>
+        {
+            deservedRewardsBefore < getTotalRewardsBalance(user) => 
+                f = claimRewards(address, uint256) ||
+                f = claimRewardsOnBehalf(address, address, uint256) ||
+                f = claimRewardsAndStake(address, uint256) ||
+                f = claimRewardsAndStakeOnBehalf(address, address, uint256) ||
+                f = claimRewardsAndRedeem(address, uint256, uint256) ||
+                f = claimRewardsAndRedeemOnBehalf(address, address, uint256, uint256)
+        }
+
+    @Notes:
+    @Link:
+*/
 rule rewardsMonotonicallyIncrease(method f, address user) {
     env e;
     uint256 _deservedRewards = getTotalRewardsBalance(e, user);
@@ -281,7 +502,20 @@ rule rewardsMonotonicallyIncrease(method f, address user) {
     assert(!claimRewards_funcs(f) => deservedRewards_ >= _deservedRewards);
 }
 
-// Rewards monotonically increasing for non claim functions
+/*
+    @Rule collectedRewardsMonotonicallyIncrease
+    @Description: Rewards monotonically increasing for non claim functions.
+         
+    @Formula: 
+        {
+        }
+            claimedAmount := claimRewardsOnBehalf(from, receiver, max_uint256)
+        {
+        }
+
+    @Notes:
+    @Link:
+*/
 rule collectedRewardsMonotonicallyIncrease(method f, address from, address to) {
     env e;
     storage initialStorage = lastStorage;
@@ -296,35 +530,24 @@ rule collectedRewardsMonotonicallyIncrease(method f, address from, address to) {
     assert(!claimRewards_funcs(f) => collectedRewards_ >= _collectedRewards);
 }
 
-/* Remove Before Publishing
+/*
+    @Rule indexesMonotonicallyIncrease
+    @Description: Global index monotonically increasing.
+         
+    @Formula: 
+        {
+            globalIndexBefore := getAssetGlobalIndex(asset),
+            personalIndexBefore := getUserPersonalIndex(asset, user)
+        }
+            <invoke any method f>
+        {
+            getAssetGlobalIndex(asset) >= globalIndexBefore,
+            getUserPersonalIndex(asset, user) >= personalIndexBefore
+        }
 
-// Rewards monotonically increasing for non claim functions
-rule rewardsMonotonicallyIncrease2(method f, address user) {
-    env e;
-    uint256 _deservedRewards = stakerRewardsToClaim(user);
-    
-    calldataarg args;
-    f(e, args);
-    
-    uint256 deservedRewards_ = stakerRewardsToClaim(user);
-    
-    assert(!claimRewards_funcs(f) => deservedRewards_ >= _deservedRewards);
-}*/
-
-// Rewards monotonically increasing for non claim functions
-rule whoDecreasedDeservedRewards(method f, address user) {
-    env e;
-    uint256 _deservedRewards = getTotalRewardsBalance(e, user);
-    
-    calldataarg args;
-    f(e, args);
-    
-    uint256 deservedRewards_ = getTotalRewardsBalance(e, user);
-    
-    assert(deservedRewards_ < _deservedRewards => claimRewards_funcs(f));
-}
-
-// Global index monotonically increasing
+    @Notes:
+    @Link:
+*/
 rule indexesMonotonicallyIncrease(method f, address asset, address user) {
     requireInvariant PersonalIndexLessOrEqualGlobalIndex(asset, user);
     uint256 _globalIndex = getAssetGlobalIndex(asset);
@@ -340,7 +563,22 @@ rule indexesMonotonicallyIncrease(method f, address asset, address user) {
     assert(personalIndex_ >= _personalIndex);
 }
 
-// Slashing increases the exchange rate
+/*
+    @Rule slashingIncreaseExchangeRate
+    @Description: Slashing increases the exchange rate.
+         
+    @Formula: 
+        {
+            ExchangeRateBefore := getExchangeRate()
+        }
+            slash(args)
+        {
+            getExchangeRate() >= ExchangeRateBefore
+        }
+
+    @Notes:
+    @Link:
+*/
 rule slashingIncreaseExchangeRate(address receiver, uint256 amount) {
     env e; calldataarg args;
     
@@ -353,7 +591,22 @@ rule slashingIncreaseExchangeRate(address receiver, uint256 amount) {
     assert(ExchangeRate_ >= _ExchangeRate);
 }
 
-// Returning funds decreases the exchange rate
+/*
+    @Rule returnFundsDecreaseExchangeRate
+    @Description: Returning funds decreases the exchange rate.
+         
+    @Formula: 
+        {
+            ExchangeRateBefore := getExchangeRate()
+        }
+            returnFunds(args)
+        {
+            getExchangeRate() <= ExchangeRateBefore
+        }
+
+    @Notes:
+    @Link:
+*/
 rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
     env e; calldataarg args;
     uint128 _ExchangeRate = getExchangeRate();
@@ -365,7 +618,22 @@ rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
     assert(ExchangeRate_ <= _ExchangeRate);
 }
 
-// Exchange rate shouldn't get to the value 0
+/*
+    @Rule exchangeRateNeverZero
+    @Description: ExchangeRate can never be zero.
+         
+    @Formula: 
+        {
+            ExchangeRateBefore := getExchangeRate()
+        }
+            <invoke any method f>
+        {
+            getExchangeRate() != 0
+        }
+
+    @Notes:
+    @Link:
+*/
 rule exchangeRateNeverZero(method f) {
     env e; calldataarg args;
     uint128 _ER = getExchangeRate();
@@ -378,23 +646,22 @@ rule exchangeRateNeverZero(method f) {
     assert ER_ != 0;
 }
 
+/*
+    @Rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate
+    @Description: Slashing 0 and returningFunds of 0 do not affect the exchange rate.
+         
+    @Formula: 
+        {
+            ExchangeRateBefore := getExchangeRate()
+        }
+            slash(dest, 0) || returnFunds(0)
+        {
+            getExchangeRate() != ExchangeRateBefore
+        }
 
-//  Remove before publishing 
-
-// rule exchangeRateNeverZero3(method f, uint256 amt) {
-//     env e; calldataarg args;
-//     require (totalSupply() + 1) * EXCHANGE_RATE_FACTOR() < max_uint128;
-//     require (totalSupply() + 1) * EXCHANGE_RATE_FACTOR() - previewRedeem(totalSupply()) >= amt;
-//     uint128 _ER = getExchangeRate();
-//     require _ER != 0;
-    
-//     returnFunds(e, amt);
-
-//     uint128 ER_ = getExchangeRate();
-
-//     assert ER_ != 0;
-// }
-
+    @Notes:
+    @Link:
+*/
 rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f){
     env e;
     address dest; uint256 amt = 0;
@@ -411,7 +678,23 @@ rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f){
     assert(ER_AfterReturnFunds == _ER);
 }
 
-// Preview redeem returns the same underlying amount to redeem as redeem (doing the same calculation)
+/*
+    @Rule previewRedeemEquivalentRedeem
+    @Description: Preview redeem returns the same underlying amount to redeem as redeem (doing the same calculation).
+         
+    @Formula: 
+        {
+            totalUnderlying := previewRedeem(amount),
+            receiverBalanceBefore := stake_token.balanceOf(receiver)
+        }
+            redeem(receiver, amount)
+        {
+            totalUnderlying = stake_token.balanceOf(receiver) - receiverBalanceBefore
+        }
+
+    @Notes:
+    @Link:
+*/
 rule previewRedeemEquivalentRedeem(method f, env e, address to, uint256 amount){
     require balanceOf(e.msg.sender) == amount;
     require currentContract != to;
@@ -425,7 +708,23 @@ rule previewRedeemEquivalentRedeem(method f, env e, address to, uint256 amount){
     assert(totalUnderlying == receiverBalance_ - _receiverBalance);
 }
 
-// Preview stake returns the same shares amount to stake (doing the same calculation)
+/*
+    @Rule previewStakeEquivalentStake
+    @Description: Preview stake function returns the same shares amount to stake (doing the same calculation).
+         
+    @Formula: 
+        {
+            amountOfShares := previewStake(amount),
+            receiverBalanceBefore := balanceOf(receiver)
+        }
+            stake(receiver, amount)
+        {
+            amountOfShares = previewStake(amount) - receiverBalanceBefore
+        }
+
+    @Notes:
+    @Link:
+*/
 rule previewStakeEquivalentStake(method f, env e, address to, uint256 amount){
     requireInvariant totalSupplyGreaterThanUserBalance(to);
     uint256 amountOfShares = previewStake(amount);
