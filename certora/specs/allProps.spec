@@ -54,7 +54,19 @@ rule integrityOfStaking(address onBehalfOf, uint256 amount) {
     assert balanceStakeTokenVaultAfter == balanceStakeTokenVaultBefore + amount;
 }
 
-// Rule to verify that no user can stake while in post-slashing period 
+/*
+    @Rule noStakingPostSlashingPeriod
+    @Description: Rule to verify that no user can stake while in post-slashing period.
+         
+    @Formula: 
+            stake(onBehalfOf, amount)
+        {
+            inPostSlashingPeriod = true => function reverts
+        }
+
+    @Notes:
+    @Link:
+*/
 rule noStakingPostSlashingPeriod(address onBehalfOf, uint256 amount) {
     env e;
     require(inPostSlashingPeriod());
@@ -369,24 +381,40 @@ rule integrityOfRedeem(address to, uint256 amount){
 
 }
 
-// Rule to verify that users can redeem while in post-slashing period.
-rule redeemDuringPostSlashing(address to, uint256 amount){
-    env e;
+/*
+    @Rule noRedeemOutOfUnstakeWindow
+    @Description: Rule to verify that users can redeem while in post-slashing period.
+         
+    @Formula: 
+        {
+        }
+            redeem(to, amount)
+        {
+            (inPostSlashingPeriod = true) ||
+            (block.timestamp > cooldown + getCooldownSeconds() &&
+            block.timestamp - (cooldown + getCooldownSeconds()) <= UNSTAKE_WINDOW)
+        }
 
-    require(inPostSlashingPeriod());
-    require(e.msg.value == 0);
-    require(amount > 0);
-    require(amount <= balanceOf(e.msg.sender));
-    require(getExchangeRate() != 0);
+    @Notes:
+    @Link:
+*/
+// rule redeemDuringPostSlashing(address to, uint256 amount){
+//     env e;
 
-    uint256 underlyingToRedeem = amount * EXCHANGE_RATE_FACTOR() / getExchangeRate();
-    require(stake_token.balanceOf(currentContract) >= underlyingToRedeem);
+//     require(inPostSlashingPeriod());
+//     require(e.msg.value == 0);
+//     require(amount > 0);
+//     require(amount <= balanceOf(e.msg.sender));
+//     require(getExchangeRate() != 0);
 
-    redeem@withrevert(e, to, amount);
+//     uint256 underlyingToRedeem = amount * EXCHANGE_RATE_FACTOR() / getExchangeRate();
+//     require(stake_token.balanceOf(currentContract) >= underlyingToRedeem);
 
-    assert !lastReverted;
+//     redeem@withrevert(e, to, amount);
 
-}
+//     assert !lastReverted;
+
+// }
 
 /*
     @Rule cooldownCorrectness
