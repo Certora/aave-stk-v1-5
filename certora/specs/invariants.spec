@@ -68,3 +68,7 @@ invariant totalSupplyGreaterThanUserBalance(address user)
 // User's personal index is derived from the global index, and therefore cannot exceed it
 invariant PersonalIndexLessOrEqualGlobalIndex(address asset, address user)
     getUserPersonalIndex(asset, user) <= getAssetGlobalIndex(asset)
+
+// Duplicate for usage in allProps.spec
+invariant allSharesAreBacked()
+    previewRedeem(totalSupply()) <= stake_token.balanceOf(currentContract)

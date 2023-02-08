@@ -522,10 +522,10 @@ rule rewardsMonotonicallyIncrease(method f, address user) {
     env e;
     uint256 _deservedRewards = getTotalRewardsBalance(e, user);
     
-    calldataarg args;
-    f(e, args);
+    env e2; calldataarg args;
+    f(e2, args);
     
-    uint256 deservedRewards_ = getTotalRewardsBalance(e, user);
+    uint256 deservedRewards_ = getTotalRewardsBalance(e2, user);
     
     assert(!claimRewards_funcs(f) => deservedRewards_ >= _deservedRewards);
 }
