@@ -16,9 +16,8 @@ certoraRun certora/harness/StakedAaveV3Harness.sol \
     --verify StakedAaveV3Harness:certora/specs/propertiesWithSummarizations.spec \
     $RULE \
     --solc solc8.17 \
-    --staging \
+    --cloud \
     --optimistic_loop \
     --loop_iter 3 \
-    --send_only \
     --settings -t=600 \
     --msg "all props $1" 

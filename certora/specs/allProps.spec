@@ -453,7 +453,8 @@ filtered {
     require(e.block.timestamp > getCooldownSeconds() + UNSTAKE_WINDOW());
     require(getCooldownSeconds() > 0);
 
-    uint72 cooldownBefore, _ = stakersCooldowns(e.msg.sender);
+    uint72 cooldownBefore;
+    cooldownBefore, _ = stakersCooldowns(e.msg.sender);
 
     require(e.block.timestamp > cooldownBefore + getCooldownSeconds());
     require(e.block.timestamp - (cooldownBefore + getCooldownSeconds()) <= UNSTAKE_WINDOW());
@@ -462,7 +463,8 @@ filtered {
 
     f(e, args);
 
-    uint72 cooldownAfter, _ = stakersCooldowns(e.msg.sender);
+    uint72 cooldownAfter;
+    cooldownAfter, _ = stakersCooldowns(e.msg.sender);
     mathint windowAfter = ((cooldownAfter + getCooldownSeconds()) > e.block.timestamp 
         ? 0
         : cooldownAfter + getCooldownSeconds() + UNSTAKE_WINDOW() - e.block.timestamp);

@@ -14,8 +14,7 @@ certoraRun certora/munged/contracts/StakedAaveV3.sol \
     --verify StakedAaveV3:certora/specs/invariants.spec \
     $RULE \
     --solc solc8.17 \
-    --staging \
+    --cloud \
     --optimistic_loop \
     --loop_iter 3 \
-    --send_only \
     --msg "invariants" 

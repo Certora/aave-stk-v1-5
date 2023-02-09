@@ -16,9 +16,8 @@ certoraRun certora/harness/StakedAaveV3Harness.sol \
     --verify StakedAaveV3Harness:certora/specs/allProps.spec \
     $RULE \
     --solc solc8.17 \
-    --staging eyalf/display-storage-in-calltrace_v2 \
+    --cloud eyalf/display-storage-in-calltrace_v2 \
     --optimistic_loop \
     --loop_iter 3 \
-    --send_only \
     --settings -t=600 \
     --msg "all props $1" 
