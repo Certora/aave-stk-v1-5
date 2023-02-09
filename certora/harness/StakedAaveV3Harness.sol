@@ -31,7 +31,7 @@ contract StakedAaveV3Harness is StakedAaveV3 {
         return assets[token].users[user];
     }
 
-    function _getExchangeRateWrapper(uint256 totalAssets, uint256 totalShares) public pure returns (uint128) {
+    function _getExchangeRateWrapper(uint256 totalAssets, uint256 totalShares) public pure returns (uint216) {
         return _getExchangeRate(totalAssets, totalShares);
     }
 }

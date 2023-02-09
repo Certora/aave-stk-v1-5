@@ -13,9 +13,9 @@ methods {
     balanceOf(address) returns (uint256) envfree
     totalSupply() returns (uint256) envfree
     stakerRewardsToClaim(address) returns (uint256) envfree
-    stakersCooldowns(address) returns (uint256) envfree
+    stakersCooldowns(address) returns (uint72, uint184) envfree
     getCooldownSeconds() returns (uint256) envfree
-    getExchangeRate() returns (uint128) envfree
+    getExchangeRate() returns (uint216) envfree
     inPostSlashingPeriod() returns (bool) envfree
     getMaxSlashablePercentage() returns (uint256) envfree
     getAssetGlobalIndex(address) returns (uint256) envfree
