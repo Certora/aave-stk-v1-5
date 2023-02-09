@@ -15,6 +15,7 @@ certoraRun certora/munged/contracts/StakedAaveV3.sol \
     $RULE \
     --solc solc8.17 \
     --cloud \
+    --send_only \
     --optimistic_loop \
     --loop_iter 3 \
     --msg "invariants" 
