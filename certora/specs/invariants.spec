@@ -4,7 +4,7 @@ ghost mathint totalStaked {
     init_state axiom totalStaked == 0;
 }
 
-ghost uint128 exchangeRate {
+ghost uint216 exchangeRate {
     init_state axiom exchangeRate == INITIAL_EXCHANGE_RATE();
 }
 

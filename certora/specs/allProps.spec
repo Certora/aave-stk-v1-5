@@ -312,7 +312,8 @@ rule airdropNotMutualized(uint256 amount){
 rule noRedeemOutOfUnstakeWindow(address to, uint256 amount){
     env e;
 
-    uint72 cooldown, _ = stakersCooldowns(e.msg.sender);
+    uint72 cooldown;
+    cooldown, _ = stakersCooldowns(e.msg.sender);
     redeem(e, to, amount);
 
     // assert cooldown is inside the unstake window or it's a post slashing period
