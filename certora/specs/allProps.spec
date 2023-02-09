@@ -38,15 +38,17 @@ rule integrityOfStaking(address onBehalfOf, uint256 amount) {
     require(balanceStakeTokenDepositorBefore < AAVE_MAX_SUPPLY());
     require(balanceStakeTokenVaultBefore < AAVE_MAX_SUPPLY());
     require(balanceBefore < AAVE_MAX_SUPPLY());
-    uint256 cooldownBefore = stakersCooldowns(onBehalfOf);
+    uint72 cooldownBefore;
+    cooldownBefore, _ = stakersCooldowns(onBehalfOf);
     require(cooldownBefore == 0);
     stake(e, onBehalfOf, amount);
     uint256 balanceAfter = balanceOf(onBehalfOf);
-    uint256 cooldownAfter = stakersCooldowns(onBehalfOf);
+    uint72 cooldownAfter;
+    cooldownAfter, _ = stakersCooldowns(onBehalfOf);
     uint256 balanceStakeTokenDepositorAfter = stake_token.balanceOf(e.msg.sender);
     uint256 balanceStakeTokenVaultAfter = stake_token.balanceOf(currentContract);
 
-    uint128 currentExchangeRate = getExchangeRate();
+    uint216 currentExchangeRate = getExchangeRate();
 
     assert balanceAfter == balanceBefore + 
         amount * currentExchangeRate / EXCHANGE_RATE_FACTOR();
@@ -248,7 +250,9 @@ rule noEntryUntilSlashingSettled(uint256 amount){
     require(amount > 0 && amount < AAVE_MAX_SUPPLY());
     require(e.msg.value == 0);
     require(e.msg.sender != currentContract && e.msg.sender != 0);
-    require(stakersCooldowns(e.msg.sender) <= MAX_COOLDOWN());
+    uint72 cooldownTimeStamp;
+    cooldownTimeStamp, _ = stakersCooldowns(e.msg.sender);
+    require(cooldownTimeStamp <= MAX_COOLDOWN());
     require(e.block.timestamp > (getCooldownSeconds() + UNSTAKE_WINDOW()));
     require(getExchangeRate() < 2 * EXCHANGE_RATE_FACTOR());
     require(balanceOf(e.msg.sender) < AAVE_MAX_SUPPLY());
@@ -281,9 +285,9 @@ rule noEntryUntilSlashingSettled(uint256 amount){
 */
 rule airdropNotMutualized(uint256 amount){
     env e;
-    uint256 exchangeRateBefore = getExchangeRate();
+    uint216 exchangeRateBefore = getExchangeRate();
     stake_token.transfer(e, currentContract, amount);
-    uint256 exchangeRateAfter = getExchangeRate();
+    uint216 exchangeRateAfter = getExchangeRate();
     assert exchangeRateBefore == exchangeRateAfter;
 }
 
@@ -308,7 +312,7 @@ rule airdropNotMutualized(uint256 amount){
 rule noRedeemOutOfUnstakeWindow(address to, uint256 amount){
     env e;
 
-    uint256 cooldown = stakersCooldowns(e.msg.sender);
+    uint72 cooldown, _ = stakersCooldowns(e.msg.sender);
     redeem(e, to, amount);
 
     // assert cooldown is inside the unstake window or it's a post slashing period
@@ -363,7 +367,7 @@ rule integrityOfRedeem(address to, uint256 amount){
     uint256 balanceStakeTokenToAfter = stake_token.balanceOf(to);
     uint256 balanceStakeTokenVaultAfter = stake_token.balanceOf(currentContract);
 
-    uint256 currentExchangeRate = getExchangeRate();
+    uint216 currentExchangeRate = getExchangeRate();
     uint256 amountToRedeem;
     if (amount > balanceBefore) {
         amountToRedeem = balanceBefore * EXCHANGE_RATE_FACTOR() / getExchangeRate();
@@ -448,7 +452,7 @@ filtered {
     require(e.block.timestamp > getCooldownSeconds() + UNSTAKE_WINDOW());
     require(getCooldownSeconds() > 0);
 
-    uint256 cooldownBefore = stakersCooldowns(e.msg.sender);
+    uint72 cooldownBefore, _ = stakersCooldowns(e.msg.sender);
 
     require(e.block.timestamp > cooldownBefore + getCooldownSeconds());
     require(e.block.timestamp - (cooldownBefore + getCooldownSeconds()) <= UNSTAKE_WINDOW());
@@ -457,7 +461,7 @@ filtered {
 
     f(e, args);
 
-    uint256 cooldownAfter = stakersCooldowns(e.msg.sender);
+    uint72 cooldownAfter, _ = stakersCooldowns(e.msg.sender);
     mathint windowAfter = ((cooldownAfter + getCooldownSeconds()) > e.block.timestamp 
         ? 0
         : cooldownAfter + getCooldownSeconds() + UNSTAKE_WINDOW() - e.block.timestamp);
@@ -610,11 +614,11 @@ rule indexesMonotonicallyIncrease(method f, address asset, address user) {
 rule slashingIncreaseExchangeRate(address receiver, uint256 amount) {
     env e; calldataarg args;
     
-    uint128 _ExchangeRate = getExchangeRate();
+    uint216 _ExchangeRate = getExchangeRate();
     
     slash(e, args);
     
-    uint128 ExchangeRate_ = getExchangeRate();
+    uint216 ExchangeRate_ = getExchangeRate();
     
     assert(ExchangeRate_ >= _ExchangeRate);
 }
@@ -637,11 +641,11 @@ rule slashingIncreaseExchangeRate(address receiver, uint256 amount) {
 */
 rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
     env e; calldataarg args;
-    uint128 _ExchangeRate = getExchangeRate();
+    uint216 _ExchangeRate = getExchangeRate();
 
     returnFunds(e, args);
     
-    uint128 ExchangeRate_ = getExchangeRate();
+    uint216 ExchangeRate_ = getExchangeRate();
     
     assert(ExchangeRate_ <= _ExchangeRate);
 }
@@ -664,12 +668,12 @@ rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
 */
 rule exchangeRateNeverZero(method f) {
     env e; calldataarg args;
-    uint128 _ER = getExchangeRate();
+    uint216 _ER = getExchangeRate();
     require _ER != 0;
     
     f(e, args);
 
-    uint128 ER_ = getExchangeRate();
+    uint216 ER_ = getExchangeRate();
 
     assert ER_ != 0;
 }
@@ -693,14 +697,14 @@ rule exchangeRateNeverZero(method f) {
 rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f){
     env e;
     address dest; uint256 amt = 0;
-    uint128 _ER = getExchangeRate();
+    uint216 _ER = getExchangeRate();
     storage initialStorage = lastStorage;
     
     slash(e, dest, amt);
-    uint128 ER_AfterSlash = getExchangeRate();
+    uint216 ER_AfterSlash = getExchangeRate();
     
     returnFunds(e, amt) at initialStorage;
-    uint128 ER_AfterReturnFunds = getExchangeRate();
+    uint216 ER_AfterReturnFunds = getExchangeRate();
 
     assert(ER_AfterSlash == ER_AfterReturnFunds);
     assert(ER_AfterReturnFunds == _ER);

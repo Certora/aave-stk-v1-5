@@ -1,4 +1,4 @@
-import "Base.spec"
+import "base.spec"
 
 methods { 
     _getRewards(uint256, uint256, uint256) => NONDET

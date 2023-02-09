@@ -13,7 +13,7 @@ ghost uint128 exchangeRate {
 //     totalStaked = totalStaked - old_state + new_state;
 // }
 
-hook Sstore _currentExchangeRate uint128 new_rate (uint128 old_rate) STORAGE {
+hook Sstore _currentExchangeRate uint216 new_rate (uint216 old_rate) STORAGE {
     exchangeRate = new_rate;
 }
 
