@@ -17,7 +17,6 @@ certoraRun certora/harness/StakedAaveV3Harness.sol \
     $RULE \
     --solc solc8.17 \
     --cloud eyalf/display-storage-in-calltrace_v2 \
-    --send_only \
     --optimistic_loop \
     --loop_iter 3 \
     --settings -t=600 \
