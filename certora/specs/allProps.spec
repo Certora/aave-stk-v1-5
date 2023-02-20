@@ -515,6 +515,7 @@ rule rewardsMonotonicallyIncrease(method f, address user) {
     uint256 _deservedRewards = getTotalRewardsBalance(e, user);
     
     env e2; calldataarg args;
+    require e2.block.timestamp >= e.block.timestamp;
     f(e2, args);
     
     uint256 deservedRewards_ = getTotalRewardsBalance(e2, user);
@@ -543,6 +544,7 @@ rule collectedRewardsMonotonicallyIncrease(method f, address from, address to) {
     uint256 _collectedRewards = claimRewardsOnBehalf(e, from, to, max_uint256);
     
     env e2; calldataarg args;
+    require e2.block.timestamp >= e.block.timestamp;
     configureAssets(e2, args) at initialStorage;
     
     uint256 collectedRewards_ = claimRewardsOnBehalf(e, from, to, max_uint256);
