@@ -264,7 +264,8 @@ rule noEntryUntilSlashingSettled(uint256 amount){
 
     stake@withrevert(e, e.msg.sender, amount);
 
-    assert inPostSlashingPeriod() => lastReverted;
+    bool reverted = lastReverted;
+    assert inPostSlashingPeriod() => reverted;
 }
 
 /*
