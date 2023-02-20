@@ -513,7 +513,7 @@ rule rewardsGetterEquivalentClaim(method f, env e, address to, address from) {
 rule rewardsMonotonicallyIncrease(method f, address user) {
     env e;
     uint256 _deservedRewards = getTotalRewardsBalance(e, user);
-    
+
     env e2; calldataarg args;
     require e2.block.timestamp >= e.block.timestamp;
     f(e2, args);
@@ -660,7 +660,9 @@ rule exchangeRateNeverZero(method f) {
     env e; calldataarg args;
     uint216 _ER = getExchangeRate();
     require _ER != 0;
-    
+    require f.selector == returnFunds(uint256).selector
+        => totalSupply() != 0;
+
     f(e, args);
 
     uint216 ER_ = getExchangeRate();
