@@ -245,22 +245,6 @@ rule integrityOfReturnFunds(uint256 amount){
 */
 rule noEntryUntilSlashingSettled(uint256 amount){
     env e;
-    require(stake_token.balanceOf(e.msg.sender) >= amount 
-        && stake_token.balanceOf(currentContract) < AAVE_MAX_SUPPLY());
-    require(amount > 0 && amount < AAVE_MAX_SUPPLY());
-    require(e.msg.value == 0);
-    require(e.msg.sender != currentContract && e.msg.sender != 0);
-    uint72 cooldownTimeStamp;
-    cooldownTimeStamp, _ = stakersCooldowns(e.msg.sender);
-    require(cooldownTimeStamp <= MAX_COOLDOWN());
-    require(e.block.timestamp > (getCooldownSeconds() + UNSTAKE_WINDOW()));
-    require(getExchangeRate() < 2 * EXCHANGE_RATE_FACTOR());
-    require(balanceOf(e.msg.sender) < AAVE_MAX_SUPPLY());
-    requireInvariant balanceOfZero();
-    
-    // reverse in updateUserAssetsInternal, need to require correct index
-    // (no underflow)
-
 
     stake@withrevert(e, e.msg.sender, amount);
 
