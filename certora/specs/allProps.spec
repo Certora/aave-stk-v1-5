@@ -629,12 +629,14 @@ rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
     @Notes:
     @Link:
 */
+
 rule exchangeRateNeverZero(method f) {
     env e; calldataarg args;
     uint216 _ER = getExchangeRate();
     require _ER != 0;
-    require f.selector == returnFunds(uint256).selector
-        => totalSupply() != 0;
+
+    // This require proves, that the exchange rate can be 0 only when totalSupply is 0.
+    // require f.selector == returnFunds(uint256).selector => totalSupply() != 0;
 
     f(e, args);
 
