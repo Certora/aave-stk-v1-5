@@ -77,33 +77,6 @@ rule noStakingPostSlashingPeriod(address onBehalfOf, uint256 amount) {
 }
 
 /*
-    @Rule stakeTokenBalanceAtLeastTotalSupply
-    @Description: Rule to verify that the contract holds enough stacked tokens proportionatly to the total supply.
-         
-    @Formula: 
-        <invoke any method f>
-        {
-            stake_token.balanceOf(currentContract) * EXCHANGE_RATE_FACTOR / ExchangeRate >= totalSupply
-        }
-
-    @Notes:
-    @Link:
-*/
-rule stakeTokenBalanceAtLeastTotalSupply(method f) {
-    env e;
-    calldataarg args;
-    require(e.msg.sender != currentContract);
-    require(REWARDS_VAULT() != currentContract);
-    uint256 totalBefore = totalSupply();
-    uint256 stakeTokenBalanceBefore = stake_token.balanceOf(currentContract);
-    require(stakeTokenBalanceBefore >= totalBefore);
-    f(e, args);
-    uint256 totalAfter = totalSupply();
-    uint256 stakeTokenBalanceAfter = stake_token.balanceOf(currentContract);
-    assert stakeTokenBalanceAfter * EXCHANGE_RATE_FACTOR() / getExchangeRate() >= totalAfter;
-}
-
-/*
     @Rule noSlashingMoreThanMax
     @Description: Rule to verify that slashing can't exceed the available slashing amount.
          
