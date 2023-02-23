@@ -11,6 +11,16 @@ contract StakedAaveV3Harness is StakedAaveV3 {
         StakedAaveV3(stakedToken, rewardToken, unstakeWindow, rewardsVault,
                     emissionManager, distributionDuration, ghoDebtToken) {}
 
+    // Returns amount of the cooldown initiated by the user.
+    function cooldownAmount(address user) public view returns (uint184) {
+        return stakersCooldowns[user].amount;
+    }
+
+    // Returns timestamp of the cooldown initiated by the user.
+    function cooldownTimestamp(address user) public view returns (uint72) {
+        return stakersCooldowns[user].timestamp;
+    }
+
     // Returns the asset's emission per second from the sturct
     function getAssetEmissionPerSecond(address token) public view returns (uint128) {
         return assets[token].emissionPerSecond;

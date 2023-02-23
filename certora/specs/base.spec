@@ -11,6 +11,8 @@ methods {
 
     // envfree 
     balanceOf(address) returns (uint256) envfree
+    cooldownAmount(address) returns (uint184) envfree
+    cooldownTimestamp(address) returns (uint72) envfree
     totalSupply() returns (uint256) envfree
     stakerRewardsToClaim(address) returns (uint256) envfree
     stakersCooldowns(address) returns (uint72, uint184) envfree
