@@ -4,6 +4,7 @@ import "invariants.spec"
 use invariant balanceOfZero
 use invariant totalSupplyGreaterThanUserBalance
 use invariant PersonalIndexLessOrEqualGlobalIndex
+use invariant cooldownAmountNotGreaterThanBalance
 
 /*
     @Rule integrityOfStaking

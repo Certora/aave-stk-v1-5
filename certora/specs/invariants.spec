@@ -30,6 +30,17 @@ invariant exchangeRateCorrectness()
 invariant balanceOfZero()
     balanceOf(0) == 0
 
+// The cooldown amount does not exceed users balance.
+invariant cooldownAmountNotGreaterThanBalance(address user)
+    balanceOf(user) >= cooldownAmount(user)
+    {
+        preserved
+        {
+            require cooldownAmount(user) > 0 => cooldownTimestamp(user) > 0;
+        }
+    }
+
+
     // The total supply amount of shares is greater or equal to any user's share balance
 invariant totalSupplyGreaterThanUserBalance(address user)
     totalSupply() >= balanceOf(user)
