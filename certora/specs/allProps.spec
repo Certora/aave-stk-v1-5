@@ -431,6 +431,45 @@ filtered {
     assert windowAfter <= windowBefore;
 }
 
+
+// check for shares
+rule cooldownCorrectnessNew(env e)
+{
+    calldataarg args;
+    address user = e.msg.sender;
+    require(user != 0 && user != currentContract);
+    requireInvariant cooldownAmountNotGreaterThanBalance(user);
+    // require(e.block.timestamp > getCooldownSeconds() + UNSTAKE_WINDOW());
+    // require(getCooldownSeconds() > 0);
+
+    uint72 cooldownStart;
+    uint184 sharesCooldownStart;
+    uint256 amountToUnstake;
+    address to;
+    //TODO: Write a similar rule which will make sure we cannot unstake more than X during the UNSTAKE_PERIOD,
+    //      where X is the balance of the user at the time, when the cooldown button was pressed.
+    cooldownStart, sharesCooldownStart = stakersCooldowns(user); // timestamp when was the cooldown initiated
+    uint256 sharesBefore = balanceOf(user); // number of shares
+
+
+    // require(balanceBefore > 0);
+    // The following 2 requirements make sure we are in the unstake period
+    require(e.block.timestamp > cooldownStart + getCooldownSeconds());
+    require(e.block.timestamp - (cooldownStart + getCooldownSeconds()) <= UNSTAKE_WINDOW());
+
+
+    redeem(e, to, amountToUnstake);
+    uint256 soldShares = sharesBefore - balanceOf(user);
+    bool postSlashing = inPostSlashingPeriod();
+
+    if (postSlashing) {
+        assert soldShares == amountToUnstake;
+    } else {
+        assert amountToUnstake < sharesCooldownStart => soldShares == amountToUnstake;
+        assert amountToUnstake >= sharesCooldownStart => soldShares == sharesCooldownStart;
+    }
+}
+
 /*
     @Rule rewardsGetterEquivalentClaim
     @Description: Rewards getter returns the same amount of max rewards the user deserve (if the user was to withdraw max).
