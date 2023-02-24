@@ -432,28 +432,32 @@ filtered {
 }
 
 
-// check for shares
+/*
+    @Rule cooldownCorrectnessNew
+    @Description: Rule to verify the correctness of stakersCooldowns.
+
+    @Notes: During unstake period, each user should be able to unstake at most
+            the amount they had when the cooldown has been initiated.
+    @Link:
+*/
 rule cooldownCorrectnessNew(env e)
 {
     calldataarg args;
     address user = e.msg.sender;
     require(user != 0 && user != currentContract);
     requireInvariant cooldownAmountNotGreaterThanBalance(user);
-    // require(e.block.timestamp > getCooldownSeconds() + UNSTAKE_WINDOW());
-    // require(getCooldownSeconds() > 0);
 
     uint72 cooldownStart;
     uint184 sharesCooldownStart;
     uint256 amountToUnstake;
     address to;
-    //TODO: Write a similar rule which will make sure we cannot unstake more than X during the UNSTAKE_PERIOD,
-    //      where X is the balance of the user at the time, when the cooldown button was pressed.
     cooldownStart, sharesCooldownStart = stakersCooldowns(user); // timestamp when was the cooldown initiated
     uint256 sharesBefore = balanceOf(user); // number of shares
 
 
-    // require(balanceBefore > 0);
-    // The following 2 requirements make sure we are in the unstake period
+    require(sharesBefore >= sharesCooldownStart);
+    // The following 3 requirements make sure we are in the unstake period
+    require(cooldownStart > 0);
     require(e.block.timestamp > cooldownStart + getCooldownSeconds());
     require(e.block.timestamp - (cooldownStart + getCooldownSeconds()) <= UNSTAKE_WINDOW());
 
@@ -463,10 +467,11 @@ rule cooldownCorrectnessNew(env e)
     bool postSlashing = inPostSlashingPeriod();
 
     if (postSlashing) {
-        assert soldShares == amountToUnstake;
+        assert amountToUnstake <= sharesCooldownStart => soldShares == amountToUnstake;
+        assert amountToUnstake > sharesCooldownStart => soldShares == sharesCooldownStart;
     } else {
-        assert amountToUnstake < sharesCooldownStart => soldShares == amountToUnstake;
-        assert amountToUnstake >= sharesCooldownStart => soldShares == sharesCooldownStart;
+        assert amountToUnstake <= sharesCooldownStart => soldShares == amountToUnstake;
+        assert amountToUnstake > sharesCooldownStart => soldShares == sharesCooldownStart;
     }
 }
 
