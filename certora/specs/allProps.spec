@@ -399,7 +399,8 @@ rule integrityOfRedeem(address to, uint256 amount){
     @Notes:
     @Link:
 */
-rule cooldownCorrectness(method f)
+/*
+rule cooldownCorrectnessOld(method f)
 filtered { 
     f-> f.selector != initialize(address,address,address,uint256,uint256).selector &&
         f.selector != setCooldownSeconds(uint256).selector 
@@ -413,24 +414,30 @@ filtered {
     require(getCooldownSeconds() > 0);
 
     uint72 cooldownBefore;
-    cooldownBefore, _ = stakersCooldowns(e.msg.sender);
+    //TODO: Write a similar rule which will make sure we cannot unstake more than X during the UNSTAKE_PERIOD,
+    //      where X is the balance of the user at the time, when the cooldown button was pressed.
+    cooldownBefore, _ = stakersCooldowns(e.msg.sender); // timestamp when was the cooldown initiated
 
+    //The following 2 requirements make sure we are in the unstake period
     require(e.block.timestamp > cooldownBefore + getCooldownSeconds());
     require(e.block.timestamp - (cooldownBefore + getCooldownSeconds()) <= UNSTAKE_WINDOW());
 
+    // The exact time we have left until we get to EXPIRE.
     mathint windowBefore = cooldownBefore + getCooldownSeconds() + UNSTAKE_WINDOW() - e.block.timestamp;
 
     f(e, args);
 
     uint72 cooldownAfter;
     cooldownAfter, _ = stakersCooldowns(e.msg.sender);
+
+    // The exact time we have left until we get to EXPIRE.
     mathint windowAfter = ((cooldownAfter + getCooldownSeconds()) > e.block.timestamp 
         ? 0
         : cooldownAfter + getCooldownSeconds() + UNSTAKE_WINDOW() - e.block.timestamp);
 
     assert windowAfter <= windowBefore;
 }
-
+*/
 
 /*
     @Rule cooldownCorrectnessNew
@@ -440,7 +447,7 @@ filtered {
             the amount they had when the cooldown has been initiated.
     @Link:
 */
-rule cooldownCorrectnessNew(env e)
+rule cooldownCorrectness(env e)
 {
     calldataarg args;
     address user = e.msg.sender;
