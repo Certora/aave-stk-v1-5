@@ -461,18 +461,11 @@ rule cooldownCorrectnessNew(env e)
     require(e.block.timestamp > cooldownStart + getCooldownSeconds());
     require(e.block.timestamp - (cooldownStart + getCooldownSeconds()) <= UNSTAKE_WINDOW());
 
-
     redeem(e, to, amountToUnstake);
     uint256 soldShares = sharesBefore - balanceOf(user);
-    bool postSlashing = inPostSlashingPeriod();
 
-    if (postSlashing) {
-        assert amountToUnstake <= sharesCooldownStart => soldShares == amountToUnstake;
-        assert amountToUnstake > sharesCooldownStart => soldShares == sharesCooldownStart;
-    } else {
-        assert amountToUnstake <= sharesCooldownStart => soldShares == amountToUnstake;
-        assert amountToUnstake > sharesCooldownStart => soldShares == sharesCooldownStart;
-    }
+    assert amountToUnstake <= sharesCooldownStart => soldShares == amountToUnstake;
+    assert amountToUnstake > sharesCooldownStart => soldShares == sharesCooldownStart;
 }
 
 /*
