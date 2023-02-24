@@ -648,14 +648,14 @@ rule slashingIncreaseExchangeRate(address receiver, uint256 amount) {
     @Link:
 */
 rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
-    env e; calldataarg args;
+    env e;
     uint216 _ExchangeRate = getExchangeRate();
 
-    returnFunds(e, args);
+    returnFunds(e, amount);
     
     uint216 ExchangeRate_ = getExchangeRate();
     
-    assert(ExchangeRate_ <= _ExchangeRate);
+    assert amount > 0 => ExchangeRate_ <= _ExchangeRate;
 }
 
 /*
