@@ -440,7 +440,7 @@ filtered {
 */
 
 /*
-    @Rule cooldownCorrectnessNew
+    @Rule cooldownCorrectness
     @Description: Rule to verify the correctness of stakersCooldowns.
 
     @Notes: During unstake period, each user should be able to unstake at most
