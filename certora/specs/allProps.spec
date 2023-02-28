@@ -691,6 +691,29 @@ rule exchangeRateNeverZero(method f) {
     assert ER_ != 0;
 }
 
+
+// ER = shares/underlying
+// shares - the number of shares minted
+// underlying - the assets
+rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate2(method f) {
+    env e;
+    address dest; uint256 amt = 0;
+    uint216 _ER = getExchangeRate();
+    storage initialStorage = lastStorage;
+    // remove this reuqire later. this is just to get more realistic values
+    require _ER > EXCHANGE_RATE_FACTOR() / 3;
+
+    slash(e, dest, amt);
+    uint216 ER_AfterSlash = getExchangeRate();
+
+    returnFunds(e, amt) at initialStorage;
+    uint216 ER_AfterReturnFunds = getExchangeRate();
+
+    assert(ER_AfterSlash == ER_AfterReturnFunds);
+    assert(ER_AfterReturnFunds == _ER);
+}
+
+
 /*
     @Rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate
     @Description: Slashing 0 and returningFunds of 0 do not affect the exchange rate.
