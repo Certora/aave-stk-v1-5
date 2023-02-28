@@ -46,28 +46,22 @@ invariant cooldownDataCorrectness(address user, env e)
 invariant cooldownAmountNotGreaterThanBalance(address user)
     balanceOf(user) >= cooldownAmount(user)
     {
-        preserved
+        preserved with (env e1)
         {
-            require cooldownAmount(user) > 0 => cooldownTimestamp(user) > 0;
-            // require balanceOf(user) <= totalSupply();
+            requireInvariant cooldownDataCorrectness(user, e1);
             requireInvariant totalSupplyGreaterThanUserBalance(user);
-            //require totalSupply() + totalSupply() < max_uint256;
         }
         preserved transferFrom(address from, address to, uint256 amount) with (env e2)
         {
             require balanceOf(from) + balanceOf(to) <= totalSupply();
-            require cooldownAmount(user) > 0 => cooldownTimestamp(user) > 0;
-            // require balanceOf(user) <= totalSupply();
+            requireInvariant cooldownDataCorrectness(user, e2);
             requireInvariant totalSupplyGreaterThanUserBalance(user);
-            //require totalSupply() + totalSupply() < max_uint256;
         }
         preserved transfer(address to, uint256 amount) with (env e3)
         {
             require balanceOf(e3.msg.sender) + balanceOf(to) <= totalSupply();
-            require cooldownAmount(user) > 0 => cooldownTimestamp(user) > 0;
-            // require balanceOf(user) <= totalSupply();
+            requireInvariant cooldownDataCorrectness(user, e3);
             requireInvariant totalSupplyGreaterThanUserBalance(user);
-            //require totalSupply() + totalSupply() < max_uint256;
         }
     }
 
