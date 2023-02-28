@@ -34,23 +34,11 @@ invariant balanceOfZero()
 invariant cooldownDataCorrectness(address user, env e)
     cooldownAmount(user) > 0 => cooldownTimestamp(user) > 0
     {
-        // The problem is, that the timestamp used in this invariant within the function call
-        // can become zero. We are unable to require it nonzero. Maybe it should not be
-        // an invariant at all, when it takes timestamps into account.
-        // preserved with (env e2)
-        // {
-        //     require e2.block.timestamp == e.block.timestamp;
-        //     require e2.block.timestamp > 0;
-        // }
-        preserved cooldown() with (env e2)
+        preserved with (env e2)
         {
             require e2.block.timestamp == e.block.timestamp;
-            require e2.block.timestamp > 0;
-        }
-        preserved cooldownOnBehalfOf(address from) with (env e2)
-        {
-            require e2.block.timestamp == e.block.timestamp;
-            require e2.block.timestamp > 0;
+            require e.block.timestamp > 0;
+            require e.block.timestamp < 2^32;
         }
     }
 
