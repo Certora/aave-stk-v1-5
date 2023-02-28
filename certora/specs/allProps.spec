@@ -5,6 +5,7 @@ use invariant balanceOfZero
 use invariant totalSupplyGreaterThanUserBalance
 use invariant PersonalIndexLessOrEqualGlobalIndex
 use invariant cooldownAmountNotGreaterThanBalance
+use invariant cooldownDataCorrectness
 
 /*
     @Rule integrityOfStaking
@@ -655,7 +656,7 @@ rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
     
     uint216 ExchangeRate_ = getExchangeRate();
     
-    assert amount > 0 => ExchangeRate_ <= _ExchangeRate;
+    assert ExchangeRate_ <= _ExchangeRate;
 }
 
 /*
