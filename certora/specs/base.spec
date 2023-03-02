@@ -39,6 +39,9 @@ methods {
     redeem(address,uint256)
     slash(address,uint256) returns (uint256)
     returnFunds(uint256)
+
+    // variable debt token
+    updateDiscountDistribution(address, address, uint256, uint256, uint256) => NONDET
 }
 
 definition AAVE_MAX_SUPPLY() returns uint256 = 16000000 * 10^18;
