@@ -12,12 +12,12 @@ contract StakedAaveV3Harness is StakedAaveV3 {
                     emissionManager, distributionDuration) {}
 
     // Returns amount of the cooldown initiated by the user.
-    function cooldownAmount(address user) public view returns (uint184) {
+    function cooldownAmount(address user) public view returns (uint216) {
         return stakersCooldowns[user].amount;
     }
 
     // Returns timestamp of the cooldown initiated by the user.
-    function cooldownTimestamp(address user) public view returns (uint72) {
+    function cooldownTimestamp(address user) public view returns (uint40) {
         return stakersCooldowns[user].timestamp;
     }
 

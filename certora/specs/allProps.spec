@@ -455,8 +455,8 @@ rule cooldownCorrectness(env e)
     require(user != 0 && user != currentContract);
     requireInvariant cooldownAmountNotGreaterThanBalance(user);
 
-    uint72 cooldownStart;
-    uint184 sharesCooldownStart;
+    uint40 cooldownStart;
+    uint216 sharesCooldownStart;
     uint256 amountToUnstake;
     address to;
     cooldownStart, sharesCooldownStart = stakersCooldowns(user); // timestamp when was the cooldown initiated
