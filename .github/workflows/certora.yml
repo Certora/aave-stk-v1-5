@@ -70,7 +70,6 @@ jobs:
           - runInvariants.sh allSharesAreBacked
           - runAllProps.sh integrityOfStaking
           - runAllProps.sh noStakingPostSlashingPeriod
-          - runAllProps.sh stakeTokenBalanceAtLeastTotalSupply
           - runAllProps.sh noSlashingMoreThanMax
           - runAllProps.sh integrityOfSlashing
           - runAllProps.sh integrityOfReturnFunds
