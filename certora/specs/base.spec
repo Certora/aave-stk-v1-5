@@ -8,6 +8,7 @@ methods {
     // public variables
     REWARDS_VAULT() returns (address) envfree
     UNSTAKE_WINDOW() returns (uint256) envfree
+    LOWER_BOUND() returns (uint256) envfree
 
     // envfree 
     balanceOf(address) returns (uint256) envfree

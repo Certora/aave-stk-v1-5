@@ -6,6 +6,7 @@ use invariant totalSupplyGreaterThanUserBalance
 use invariant PersonalIndexLessOrEqualGlobalIndex
 use invariant cooldownAmountNotGreaterThanBalance
 use invariant cooldownDataCorrectness
+use invariant allSharesAreBacked
 
 /*
     @Rule integrityOfStaking
@@ -544,6 +545,8 @@ rule rewardsIsNonZero(method f, address user, env e, env e2) {
     uint256 _deservedRewards = getTotalRewardsBalance(e, user);
 
     require _deservedRewards > 0;
+    requireInvariant totalSupplyGreaterThanUserBalance(user);
+    requireInvariant allSharesAreBacked();
     require e2.block.timestamp >= e.block.timestamp;
 
     calldataarg args;
@@ -663,6 +666,9 @@ rule slashingIncreaseExchangeRate(address receiver, uint256 amount) {
 rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
     env e;
     uint216 _ExchangeRate = getExchangeRate();
+
+    // Currently, in the constructor, LOWER_BOUND = 10**decimals
+    require LOWER_BOUND() > 0;
 
     returnFunds(e, amount);
     
