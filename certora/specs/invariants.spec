@@ -30,6 +30,9 @@ invariant exchangeRateCorrectness()
 invariant balanceOfZero()
     balanceOf(0) == 0
 
+invariant lowerBoundNotZero()
+    LOWER_BOUND() > 0
+
 // When cooldown amount of user nonzero, the cooldown had to be triggered
 invariant cooldownDataCorrectness(address user, env e)
     cooldownAmount(user) > 0 => cooldownTimestamp(user) > 0

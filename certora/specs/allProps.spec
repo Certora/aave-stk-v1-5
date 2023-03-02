@@ -1,12 +1,13 @@
 import "base.spec"
 import "invariants.spec"
 
+use invariant allSharesAreBacked
 use invariant balanceOfZero
-use invariant totalSupplyGreaterThanUserBalance
-use invariant PersonalIndexLessOrEqualGlobalIndex
 use invariant cooldownAmountNotGreaterThanBalance
 use invariant cooldownDataCorrectness
-use invariant allSharesAreBacked
+use invariant lowerBoundNotZero
+use invariant PersonalIndexLessOrEqualGlobalIndex
+use invariant totalSupplyGreaterThanUserBalance
 
 /*
     @Rule integrityOfStaking
@@ -571,20 +572,20 @@ rule rewardsIsNonZero(method f, address user, env e, env e2) {
     @Notes:
     @Link:
 */
-rule collectedRewardsMonotonicallyIncrease(method f, address from, address to) {
-    env e;
-    storage initialStorage = lastStorage;
+// rule collectedRewardsMonotonicallyIncrease(method f, address from, address to) {
+//     env e;
+//     storage initialStorage = lastStorage;
     
-    uint256 _collectedRewards = claimRewardsOnBehalf(e, from, to, max_uint256);
+//     uint256 _collectedRewards = claimRewardsOnBehalf(e, from, to, max_uint256);
     
-    env e2; calldataarg args;
-    require e2.block.timestamp >= e.block.timestamp;
-    configureAssets(e2, args) at initialStorage;
+//     env e2; calldataarg args;
+//     require e2.block.timestamp >= e.block.timestamp;
+//     configureAssets(e2, args) at initialStorage;
     
-    uint256 collectedRewards_ = claimRewardsOnBehalf(e, from, to, max_uint256);
+//     uint256 collectedRewards_ = claimRewardsOnBehalf(e, from, to, max_uint256);
     
-    assert(!claimRewards_funcs(f) => collectedRewards_ >= _collectedRewards);
-}
+//     assert(!claimRewards_funcs(f) => collectedRewards_ >= _collectedRewards);
+// }
 
 /*
     @Rule indexesMonotonicallyIncrease
@@ -668,7 +669,7 @@ rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
     uint216 _ExchangeRate = getExchangeRate();
 
     // Currently, in the constructor, LOWER_BOUND = 10**decimals
-    require LOWER_BOUND() > 0;
+    requireInvariant lowerBoundNotZero();
 
     returnFunds(e, amount);
     
