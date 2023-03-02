@@ -62,8 +62,11 @@ jobs:
           - runPropertiesWithSummarization.sh allStakedAaveBacked
           - runInvariants.sh exchangeRateCorrectness
           - runInvariants.sh balanceOfZero
+          - runInvariants.sh cooldownDataCorrectness
+          - runInvariants.sh cooldownAmountNotGreaterThanBalance
           - runInvariants.sh totalSupplyGreaterThanUserBalance
           - runInvariants.sh PersonalIndexLessOrEqualGlobalIndex
+          - runInvariants.sh allSharesAreBacked
           - runAllProps.sh integrityOfStaking
           - runAllProps.sh noStakingPostSlashingPeriod
           - runAllProps.sh stakeTokenBalanceAtLeastTotalSupply
