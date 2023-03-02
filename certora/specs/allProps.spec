@@ -529,17 +529,29 @@ rule rewardsGetterEquivalentClaim(method f, env e, address to, address from) {
     @Notes:
     @Link:
 */
-rule rewardsMonotonicallyIncrease(method f, address user) {
-    env e;
+rule rewardsMonotonicallyIncrease(address user, env e, env e2) {
     uint256 _deservedRewards = getTotalRewardsBalance(e, user);
 
-    env e2; calldataarg args;
     require e2.block.timestamp >= e.block.timestamp;
-    f(e2, args);
-    
+
     uint256 deservedRewards_ = getTotalRewardsBalance(e2, user);
-    
-    assert(!claimRewards_funcs(f) => deservedRewards_ >= _deservedRewards);
+
+    assert(deservedRewards_ >= _deservedRewards);
+}
+
+
+rule rewardsIsNonZero(method f, address user, env e, env e2) {
+    uint256 _deservedRewards = getTotalRewardsBalance(e, user);
+
+    require _deservedRewards > 0;
+    require e2.block.timestamp >= e.block.timestamp;
+
+    calldataarg args;
+    f(e2, args);
+
+    uint256 deservedRewards_ = getTotalRewardsBalance(e2, user);
+
+    assert(deservedRewards_ > 0);
 }
 
 /*

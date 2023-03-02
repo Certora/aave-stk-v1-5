@@ -80,6 +80,7 @@ jobs:
           - runAllProps.sh cooldownCorrectness
           - runAllProps.sh rewardsGetterEquivalentClaim
           - runAllProps.sh rewardsMonotonicallyIncrease
+          - runAllProps.sh rewardsIsNonZero
           - runAllProps.sh collectedRewardsMonotonicallyIncrease
           - runAllProps.sh indexesMonotonicallyIncrease
           - runAllProps.sh slashingIncreaseExchangeRate
