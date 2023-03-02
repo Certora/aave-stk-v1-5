@@ -6,6 +6,7 @@ use invariant totalSupplyGreaterThanUserBalance
 use invariant PersonalIndexLessOrEqualGlobalIndex
 use invariant cooldownAmountNotGreaterThanBalance
 use invariant cooldownDataCorrectness
+use invariant allSharesAreBacked
 
 /*
     @Rule integrityOfStaking
@@ -455,8 +456,8 @@ rule cooldownCorrectness(env e)
     require(user != 0 && user != currentContract);
     requireInvariant cooldownAmountNotGreaterThanBalance(user);
 
-    uint72 cooldownStart;
-    uint184 sharesCooldownStart;
+    uint40 cooldownStart;
+    uint216 sharesCooldownStart;
     uint256 amountToUnstake;
     address to;
     cooldownStart, sharesCooldownStart = stakersCooldowns(user); // timestamp when was the cooldown initiated
@@ -529,17 +530,31 @@ rule rewardsGetterEquivalentClaim(method f, env e, address to, address from) {
     @Notes:
     @Link:
 */
-rule rewardsMonotonicallyIncrease(method f, address user) {
-    env e;
+rule rewardsMonotonicallyIncrease(address user, env e, env e2) {
     uint256 _deservedRewards = getTotalRewardsBalance(e, user);
 
-    env e2; calldataarg args;
     require e2.block.timestamp >= e.block.timestamp;
-    f(e2, args);
-    
+
     uint256 deservedRewards_ = getTotalRewardsBalance(e2, user);
-    
-    assert(!claimRewards_funcs(f) => deservedRewards_ >= _deservedRewards);
+
+    assert(deservedRewards_ >= _deservedRewards);
+}
+
+
+rule rewardsIsNonZero(method f, address user, env e, env e2) {
+    uint256 _deservedRewards = getTotalRewardsBalance(e, user);
+
+    require _deservedRewards > 0;
+    requireInvariant totalSupplyGreaterThanUserBalance(user);
+    requireInvariant allSharesAreBacked();
+    require e2.block.timestamp >= e.block.timestamp;
+
+    calldataarg args;
+    f(e2, args);
+
+    uint256 deservedRewards_ = getTotalRewardsBalance(e2, user);
+
+    assert(deservedRewards_ > 0);
 }
 
 /*
@@ -651,6 +666,9 @@ rule slashingIncreaseExchangeRate(address receiver, uint256 amount) {
 rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
     env e;
     uint216 _ExchangeRate = getExchangeRate();
+
+    // Currently, in the constructor, LOWER_BOUND = 10**decimals
+    require LOWER_BOUND() > 0;
 
     returnFunds(e, amount);
     

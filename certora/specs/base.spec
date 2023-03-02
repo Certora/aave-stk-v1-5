@@ -8,14 +8,15 @@ methods {
     // public variables
     REWARDS_VAULT() returns (address) envfree
     UNSTAKE_WINDOW() returns (uint256) envfree
+    LOWER_BOUND() returns (uint256) envfree
 
     // envfree 
     balanceOf(address) returns (uint256) envfree
-    cooldownAmount(address) returns (uint184) envfree
-    cooldownTimestamp(address) returns (uint72) envfree
+    cooldownAmount(address) returns (uint216) envfree
+    cooldownTimestamp(address) returns (uint40) envfree
     totalSupply() returns (uint256) envfree
     stakerRewardsToClaim(address) returns (uint256) envfree
-    stakersCooldowns(address) returns (uint72, uint184) envfree
+    stakersCooldowns(address) returns (uint40, uint216) envfree
     getCooldownSeconds() returns (uint256) envfree
     getExchangeRate() returns (uint216) envfree
     inPostSlashingPeriod() returns (bool) envfree
@@ -39,6 +40,9 @@ methods {
     redeem(address,uint256)
     slash(address,uint256) returns (uint256)
     returnFunds(uint256)
+
+    // variable debt token
+    updateDiscountDistribution(address, address, uint256, uint256, uint256) => NONDET
 }
 
 definition AAVE_MAX_SUPPLY() returns uint256 = 16000000 * 10^18;

@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - main
+      - ted_rules
 
   workflow_dispatch:
 
@@ -62,11 +63,13 @@ jobs:
           - runPropertiesWithSummarization.sh allStakedAaveBacked
           - runInvariants.sh exchangeRateCorrectness
           - runInvariants.sh balanceOfZero
+          - runInvariants.sh cooldownDataCorrectness
+          - runInvariants.sh cooldownAmountNotGreaterThanBalance
           - runInvariants.sh totalSupplyGreaterThanUserBalance
           - runInvariants.sh PersonalIndexLessOrEqualGlobalIndex
+          - runInvariants.sh allSharesAreBacked
           - runAllProps.sh integrityOfStaking
           - runAllProps.sh noStakingPostSlashingPeriod
-          - runAllProps.sh stakeTokenBalanceAtLeastTotalSupply
           - runAllProps.sh noSlashingMoreThanMax
           - runAllProps.sh integrityOfSlashing
           - runAllProps.sh integrityOfReturnFunds
@@ -77,6 +80,7 @@ jobs:
           - runAllProps.sh cooldownCorrectness
           - runAllProps.sh rewardsGetterEquivalentClaim
           - runAllProps.sh rewardsMonotonicallyIncrease
+          - runAllProps.sh rewardsIsNonZero
           - runAllProps.sh collectedRewardsMonotonicallyIncrease
           - runAllProps.sh indexesMonotonicallyIncrease
           - runAllProps.sh slashingIncreaseExchangeRate

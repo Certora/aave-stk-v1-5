@@ -1,38 +1,29 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-// most imports are only here to force import order for better (i.e smaller) diff on flattening
-import {Context} from '../lib/Context.sol';
 import {IERC20} from '../interfaces/IERC20.sol';
-import {ERC20} from '../lib/ERC20.sol';
-import {ITransferHook} from '../interfaces/ITransferHook.sol';
 import {DistributionTypes} from '../lib/DistributionTypes.sol';
-import {Address} from '../lib/Address.sol';
-import {SafeERC20} from '../lib/SafeERC20.sol';
-import {VersionedInitializable} from '../utils/VersionedInitializable.sol';
-import {IAaveDistributionManager} from '../interfaces/IAaveDistributionManager.sol';
-import {AaveDistributionManager} from './AaveDistributionManager.sol';
-import {IGovernancePowerDelegationToken} from '../interfaces/IGovernancePowerDelegationToken.sol';
 import {GovernancePowerDelegationERC20} from '../lib/GovernancePowerDelegationERC20.sol';
-import {GovernancePowerWithSnapshot} from '../lib/GovernancePowerWithSnapshot.sol';
 import {StakedTokenV3} from './StakedTokenV3.sol';
 import {IGhoVariableDebtToken} from '../interfaces/IGhoVariableDebtToken.sol';
-import {StakedTokenV2} from './StakedTokenV2.sol';
 import {SafeCast} from '../lib/SafeCast.sol';
+import {IStakedAaveV3} from '../interfaces/IStakedAaveV3.sol';
+import {IERC20WithPermit} from '../interfaces/IERC20WithPermit.sol';
 
 /**
  * @title StakedAaveV3
  * @notice StakedTokenV3 with AAVE token as staked token
  * @author BGD Labs
  */
-contract StakedAaveV3 is StakedTokenV3 {
+contract StakedAaveV3 is StakedTokenV3, IStakedAaveV3 {
   using SafeCast for uint256;
-  /// @notice GHO debt token to be used in the _beforeTokenTransfer hook
-  IGhoVariableDebtToken public immutable GHO_DEBT_TOKEN;
 
   uint32 internal _exchangeRateSnapshotsCount;
   /// @notice Snapshots of the exchangeRate for a given block
   mapping(uint256 => ExchangeRateSnapshot) public _exchangeRateSnapshots;
+
+  /// @notice GHO debt token to be used in the _beforeTokenTransfer hook
+  IGhoVariableDebtToken public ghoDebtToken;
 
   function REVISION() public pure virtual override returns (uint256) {
     return 4;
@@ -44,8 +35,7 @@ contract StakedAaveV3 is StakedTokenV3 {
     uint256 unstakeWindow,
     address rewardsVault,
     address emissionManager,
-    uint128 distributionDuration,
-    address ghoDebtToken
+    uint128 distributionDuration
   )
     StakedTokenV3(
       stakedToken,
@@ -56,8 +46,8 @@ contract StakedAaveV3 is StakedTokenV3 {
       distributionDuration
     )
   {
-    require(Address.isContract(address(ghoDebtToken)), 'GHO_MUST_BE_CONTRACT');
-    GHO_DEBT_TOKEN = IGhoVariableDebtToken(ghoDebtToken);
+    // brick initialize
+    lastInitializedRevision = REVISION();
   }
 
   /**
@@ -82,6 +72,52 @@ contract StakedAaveV3 is StakedTokenV3 {
     STAKED_TOKEN.approve(address(this), type(uint256).max);
   }
 
+  /// @inheritdoc IStakedAaveV3
+  function setGHODebtToken(IGhoVariableDebtToken newGHODebtToken) external {
+    require(msg.sender == 0xEE56e2B3D491590B5b31738cC34d5232F378a8D5); // Short executor
+    ghoDebtToken = newGHODebtToken;
+    emit GHODebtTokenChanged(address(newGHODebtToken));
+  }
+
+  /// @inheritdoc IStakedAaveV3
+  function claimRewardsAndStake(address to, uint256 amount)
+    external
+    override
+    returns (uint256)
+  {
+    return _claimRewardsAndStakeOnBehalf(msg.sender, to, amount);
+  }
+
+  /// @inheritdoc IStakedAaveV3
+  function claimRewardsAndStakeOnBehalf(
+    address from,
+    address to,
+    uint256 amount
+  ) external override onlyClaimHelper returns (uint256) {
+    return _claimRewardsAndStakeOnBehalf(from, to, amount);
+  }
+
+  /// @inheritdoc IStakedAaveV3
+  function stakeWithPermit(
+    address from,
+    uint256 amount,
+    uint256 deadline,
+    uint8 v,
+    bytes32 r,
+    bytes32 s
+  ) external override {
+    IERC20WithPermit(address(STAKED_TOKEN)).permit(
+      from,
+      address(this),
+      amount,
+      deadline,
+      v,
+      r,
+      s
+    );
+    _stake(from, from, amount);
+  }
+
   /**
    * @dev Writes a snapshot before any operation involving transfer of value: _transfer, _mint and _burn
    * - On _transfer, it writes snapshots for both "from" and "to"
@@ -96,13 +132,18 @@ contract StakedAaveV3 is StakedTokenV3 {
     address to,
     uint256 amount
   ) internal override {
-    GHO_DEBT_TOKEN.updateDiscountDistribution(
-      from,
-      to,
-      balanceOf(from),
-      balanceOf(to),
-      amount
-    );
+    IGhoVariableDebtToken cachedGhoDebtToken = ghoDebtToken;
+    if (address(cachedGhoDebtToken) != address(0)) {
+      try
+        cachedGhoDebtToken.updateDiscountDistribution(
+          from,
+          to,
+          balanceOf(from),
+          balanceOf(to),
+          amount
+        )
+      {} catch (bytes memory) {}
+    }
     address votingFromDelegatee = _votingDelegates[from];
     address votingToDelegatee = _votingDelegates[to];
 

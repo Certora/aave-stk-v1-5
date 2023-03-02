@@ -6,10 +6,8 @@ fi
 certoraRun certora/harness/StakedAaveV3Harness.sol \
     certora/harness/DummyERC20Impl.sol \
     certora/harness/AaveGovernance.sol \
-    certora/harness/GhoVariableDebt_Mock.sol \
     --link StakedAaveV3Harness:STAKED_TOKEN=DummyERC20Impl \
     --link StakedAaveV3Harness:REWARD_TOKEN=DummyERC20Impl \
-    --link StakedAaveV3Harness:GHO_DEBT_TOKEN=GhoVariableDebt_Mock \
     --link StakedAaveV3Harness:_aaveGovernance=AaveGovernance \
     --verify StakedAaveV3Harness:certora/specs/invariants.spec \
     --solc solc8.17 \
