@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - main
+      - ted_rules
 
   workflow_dispatch:
 
