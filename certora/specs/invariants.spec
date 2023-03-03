@@ -111,3 +111,11 @@ invariant PersonalIndexLessOrEqualGlobalIndex(address asset, address user)
 // Duplicate for usage in allProps.spec
 invariant allSharesAreBacked()
     previewRedeem(totalSupply()) <= stake_token.balanceOf(currentContract)
+    {
+        preserved initialize(address slashingAdmin, address cooldownPauseAdmin,
+            address claimHelper, uint256 maxSlashablePercentage, uint256 cooldownSeconds)
+            with (env e)
+        {
+            require INITIAL_EXCHANGE_RATE() == getExchangeRate();
+        }
+    }
