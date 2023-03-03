@@ -778,8 +778,9 @@ rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f) {
     @Notes:
     @Link:
 */
-rule previewRedeemEquivalentRedeem(method f, env e, address to, uint256 amount){
-    require balanceOf(e.msg.sender) == amount;
+rule previewRedeemEquivalentRedeem(method f, env e, address to, uint256 amount) {
+    require cooldownAmount(e.msg.sender) == amount;
+    require balanceOf(e.msg.sender) >= amount;
     require currentContract != to;
     uint256 totalUnderlying = previewRedeem(amount);
     uint256 _receiverBalance = stake_token.balanceOf(to);

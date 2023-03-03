@@ -9,6 +9,7 @@ methods {
     REWARDS_VAULT() returns (address) envfree
     UNSTAKE_WINDOW() returns (uint256) envfree
     LOWER_BOUND() returns (uint256) envfree
+    INITIAL_EXCHANGE_RATE() returns (uint216) envfree
 
     // envfree 
     balanceOf(address) returns (uint256) envfree
