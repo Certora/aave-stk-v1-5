@@ -485,25 +485,25 @@ rule rewardsMonotonicallyIncrease(address user, env e, env e2) {
     assert(deservedRewards_ >= _deservedRewards);
 }
 
-
-rule rewardsIsNonZero(method f, address user, env e, env e2) {
+rule rewardsIncreaseForNonClaimFunctions(method f, address user, env e)
+filtered {
+    f -> !f.isView && !claimRewards_funcs(f)
+} {
     uint256 _deservedRewards = getTotalRewardsBalance(e, user);
 
-    require _deservedRewards > 0;
     requireInvariant totalSupplyGreaterThanUserBalance(user);
     requireInvariant allSharesAreBacked();
-    require e2.block.timestamp >= e.block.timestamp;
 
     calldataarg args;
-    f(e2, args);
+    f(e, args);
 
-    uint256 deservedRewards_ = getTotalRewardsBalance(e2, user);
+    uint256 deservedRewards_ = getTotalRewardsBalance(e, user);
 
-    assert(deservedRewards_ > 0);
+    assert(deservedRewards_ >= _deservedRewards);
 }
 
 /*
-    @Rule collectedRewardsMonotonicallyIncrease
+    @Rule  collectedRewardsMonotonicallyIncrease
     @Description: Rewards monotonically increasing for non claim functions.
          
     @Formula: 
@@ -525,9 +525,9 @@ rule rewardsIsNonZero(method f, address user, env e, env e2) {
 //     env e2; calldataarg args;
 //     require e2.block.timestamp >= e.block.timestamp;
 //     configureAssets(e2, args) at initialStorage;
-    
+
 //     uint256 collectedRewards_ = claimRewardsOnBehalf(e, from, to, max_uint256);
-    
+
 //     assert(!claimRewards_funcs(f) => collectedRewards_ >= _collectedRewards);
 // }
 
@@ -722,8 +722,7 @@ rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f) {
     @Notes:
     @Link:
 */
-rule previewRedeemEquivalentRedeem(method f, env e, address to, uint256 amount) {
-    require cooldownAmount(e.msg.sender) == amount;
+rule integrityOfRedeem(method f, env e, address to, uint256 amount) {
     require balanceOf(e.msg.sender) >= amount;
     require currentContract != to;
     uint256 totalUnderlying = previewRedeem(amount);
@@ -733,7 +732,8 @@ rule previewRedeemEquivalentRedeem(method f, env e, address to, uint256 amount) 
 
     uint256 receiverBalance_ = stake_token.balanceOf(to);
 
-    assert(totalUnderlying == receiverBalance_ - _receiverBalance);
+    assert(amount <= cooldownAmount(e.msg.sender) =>
+        totalUnderlying == receiverBalance_ - _receiverBalance);
 }
 
 /*

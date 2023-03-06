@@ -21,6 +21,8 @@ invariant exchangeRateCorrectness()
     getExchangeRate() == 
         stake_token.balanceOf(currentContract) * EXCHANGE_RATE_FACTOR() / totalSupply() {
         preserved {
+            // require totalSupply() != 0;
+            requireInvariant lowerBoundNotZero();
             require (totalSupply() < AAVE_MAX_SUPPLY());
             require (stake_token.balanceOf(currentContract) < AAVE_MAX_SUPPLY());
         }
@@ -117,5 +119,18 @@ invariant allSharesAreBacked()
             with (env e)
         {
             require INITIAL_EXCHANGE_RATE() == getExchangeRate();
+        }
+        preserved returnFunds(uint256 amount) with (env e3)
+        {
+            require e3.msg.sender != currentContract;
+        }
+        preserved stake(address to, uint256 amount) with (env e4)
+        {
+            require e4.msg.sender != currentContract;
+        }
+        preserved with (env e1)
+        {
+//            requireInvariant exchangeRateCorrectness();
+            require e1.msg.sender != currentContract;
         }
     }

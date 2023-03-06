@@ -1,9 +1,12 @@
 import "base.spec"
+import "invariants.spec"
 
 methods { 
     _getRewards(uint256, uint256, uint256) => NONDET
     _getAssetIndex(uint256, uint256, uint128, uint256) => NONDET
 }
+
+use invariant exchangeRateCorrectness
 
 // Shares value cannot exceed actual locked amount of staked token
 invariant allSharesAreBacked()
@@ -38,8 +41,14 @@ invariant allSharesAreBacked()
 invariant allStakedAaveBacked(env e)
     stake_token.balanceOf(currentContract) >= totalSupply()/getExchangeRate()
     {
+        preserved
+        {
+            requireInvariant exchangeRateCorrectness();
+            require(totalSupply() > 0 && totalSupply() < AAVE_MAX_SUPPLY());
+        }
         preserved stake(address to, uint256 amount) with (env e2)
         {
+            requireInvariant exchangeRateCorrectness();
             require e2.msg.sender != currentContract;
         }
         // preserved stakeWithPermit(address from, address to, uint256 amount,
@@ -50,6 +59,7 @@ invariant allStakedAaveBacked(env e)
         // }
         preserved returnFunds(uint256 amount) with (env e4)
         {
+            requireInvariant exchangeRateCorrectness();
             require e4.msg.sender != currentContract;
         }
     }
