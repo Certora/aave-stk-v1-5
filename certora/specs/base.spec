@@ -61,9 +61,11 @@ definition PROPOSITION_POWER() returns uint8 = 1;
 
 
 definition claimRewards_funcs(method f) returns bool =
+(
     f.selector == claimRewards(address, uint256).selector ||
     f.selector == claimRewardsOnBehalf(address, address, uint256).selector ||
     f.selector == claimRewardsAndStake(address, uint256).selector ||
     f.selector == claimRewardsAndStakeOnBehalf(address, address, uint256).selector ||
     f.selector == claimRewardsAndRedeem(address, uint256, uint256).selector ||
-    f.selector == claimRewardsAndRedeemOnBehalf(address, address, uint256, uint256).selector;
+    f.selector == claimRewardsAndRedeemOnBehalf(address, address, uint256, uint256).selector
+);
