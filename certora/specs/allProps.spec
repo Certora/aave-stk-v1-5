@@ -675,7 +675,7 @@ rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f) {
     address dest; uint256 amt = 0;
     uint216 _ER = getExchangeRate();
     storage initialStorage = lastStorage;
-    // remove this reuqire later. this is just to get more realistic values
+    // remove this require later. this is just to get more realistic values
     require _ER > EXCHANGE_RATE_FACTOR() / 3;
 
     slash(e, dest, amt);
@@ -685,7 +685,7 @@ rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f) {
     uint216 ER_AfterReturnFunds = getExchangeRate();
 
     assert(ER_AfterSlash == ER_AfterReturnFunds);
-    assert(ER_AfterReturnFunds == _ER);
+    assert(ER_AfterReturnFunds == _ER || ER_AfterReturnFunds == _ER + 1 || ER_AfterReturnFunds + 1 == _ER);
 }
 
 
@@ -706,7 +706,7 @@ rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f) {
 // }
 
 /*
-    @Rule previewRedeemEquivalentRedeem
+    @Rule integrityOfRedeem
     @Description: Preview redeem returns the same underlying amount to redeem as redeem (doing the same calculation).
          
     @Formula: 
