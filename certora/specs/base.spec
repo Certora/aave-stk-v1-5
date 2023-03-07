@@ -30,6 +30,7 @@ methods {
 
     // address, block, delegation type 
     _votingSnapshotsCounts(address) returns (uint256) envfree
+    _updateCurrentUnclaimedRewards(address, uint256, bool) returns (uint256) envfree
 
     // view but not envfree - uses block.timestamp
     getNextCooldownTimestamp(uint256,uint256,address,uint256)

@@ -19,10 +19,12 @@ hook Sstore _currentExchangeRate uint216 new_rate (uint216 old_rate) STORAGE {
 
 invariant exchangeRateCorrectness()
     getExchangeRate() == 
+        // TODO: add this variable into munged contract:
+        // actual_amount_of_underlying_staked_in_pool * EXCHANGE_RATE_FACTOR() / totalSupply() {
         stake_token.balanceOf(currentContract) * EXCHANGE_RATE_FACTOR() / totalSupply() {
         preserved {
             // require totalSupply() != 0;
-            requireInvariant lowerBoundNotZero();
+            // requireInvariant lowerBoundNotZero();
             require (totalSupply() < AAVE_MAX_SUPPLY());
             require (stake_token.balanceOf(currentContract) < AAVE_MAX_SUPPLY());
         }
@@ -128,9 +130,20 @@ invariant allSharesAreBacked()
         {
             require e4.msg.sender != currentContract;
         }
+        preserved stakeWithPermit(address from, uint256 amount,
+            uint256 deadline, uint8 v, bytes32 r, bytes32 s) with (env e5)
+        {
+            require e5.msg.sender != currentContract;
+        }
         preserved with (env e1)
         {
 //            requireInvariant exchangeRateCorrectness();
             require e1.msg.sender != currentContract;
+        }
+        preserved claimRewards(address to, uint256 amount) with (env e6)
+        {
+            // TODO: Check that we have dome properties for correct rewards handling
+            //       and that rewards cannot lead to insolvency.
+            require _updateCurrentUnclaimedRewards(to, balanceOf(to), false) == 0;
         }
     }
