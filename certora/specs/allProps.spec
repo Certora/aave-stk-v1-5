@@ -692,7 +692,7 @@ rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f) {
     uint216 _ER = getExchangeRate();
     storage initialStorage = lastStorage;
     // remove this require later. this is just to get more realistic values
-    require _ER > EXCHANGE_RATE_FACTOR() / 3;
+    // require _ER > EXCHANGE_RATE_FACTOR() / 3;
 
     slash(e, dest, amt);
     uint216 ER_AfterSlash = getExchangeRate();

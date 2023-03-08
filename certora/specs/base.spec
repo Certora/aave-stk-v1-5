@@ -11,7 +11,7 @@ methods {
     LOWER_BOUND() returns (uint256) envfree
     INITIAL_EXCHANGE_RATE() returns (uint216) envfree
 
-    // envfree 
+    // envfree
     balanceOf(address) returns (uint256) envfree
     cooldownAmount(address) returns (uint216) envfree
     cooldownTimestamp(address) returns (uint40) envfree
