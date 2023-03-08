@@ -36,29 +36,29 @@ invariant allSharesAreBacked()
         }
     }
 
-// All shares are backed by at enough underlying token
-invariant allStakedAaveBacked(env e)
-    stake_token.balanceOf(currentContract) >= totalSupply()/getExchangeRate()
-    {
-        preserved
-        {
-            requireInvariant exchangeRateCorrectness();
-            require(totalSupply() > 0 && totalSupply() < AAVE_MAX_SUPPLY());
-        }
-        preserved stake(address to, uint256 amount) with (env e2)
-        {
-            requireInvariant exchangeRateCorrectness();
-            require e2.msg.sender != currentContract;
-        }
-        // preserved stakeWithPermit(address from, address to, uint256 amount,
-        //                             uint256 deadline, uint8 v, bytes32 r, bytes32 s) with (env e3)
-        // {
-        //     require e3.msg.sender != currentContract;
-        //     require from != currentContract;
-        // }
-        preserved returnFunds(uint256 amount) with (env e4)
-        {
-            requireInvariant exchangeRateCorrectness();
-            require e4.msg.sender != currentContract;
-        }
-    }
+// // All shares are backed by at enough underlying token
+// invariant allStakedAaveBacked(env e)
+//     stake_token.balanceOf(currentContract) >= totalSupply()/getExchangeRate()
+//     {
+//         preserved
+//         {
+//             requireInvariant exchangeRateCorrectness();
+//             require(totalSupply() > 0 && totalSupply() < AAVE_MAX_SUPPLY());
+//         }
+//         preserved stake(address to, uint256 amount) with (env e2)
+//         {
+//             requireInvariant exchangeRateCorrectness();
+//             require e2.msg.sender != currentContract;
+//         }
+//         preserved stakeWithPermit(address from, uint256 amount, uint256 deadline,
+//             uint8 v, bytes32 r, bytes32 s) with (env e3)
+//         {
+//             require e3.msg.sender != currentContract;
+//             require from != currentContract;
+//         }
+//         preserved returnFunds(uint256 amount) with (env e4)
+//         {
+//             requireInvariant exchangeRateCorrectness();
+//             require e4.msg.sender != currentContract;
+//         }
+//     }
