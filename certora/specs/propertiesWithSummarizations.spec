@@ -9,23 +9,22 @@ methods {
 use invariant exchangeRateCorrectness
 
 // Shares value cannot exceed actual locked amount of staked token
+// The update rewards functions are mutilated by returning
+// a NONDET value for _getRewards & _getAssetIndex . The reason for this
+// summarization is because the invariant does not claim anything about rewards.
 invariant allSharesAreBacked()
     previewRedeem(totalSupply()) <= stake_token.balanceOf(currentContract)
     {
-        // preserved with (env e)
-        // {
-        //     require e.msg.sender != currentContract;
-        // }
         preserved stake(address to, uint256 amount) with (env e2)
         {
             require e2.msg.sender != currentContract;
         }
-        // preserved stakeWithPermit(address from, address to, uint256 amount,
-        //                             uint256 deadline, uint8 v, bytes32 r, bytes32 s) with (env e3)
-        // {
-        //     require e3.msg.sender != currentContract;
-        //     require from != currentContract;
-        // }
+        preserved stakeWithPermit(address from, uint256 amount, uint256 deadline,
+            uint8 v, bytes32 r, bytes32 s) with (env e3)
+        {
+            require e3.msg.sender != currentContract;
+            require from != currentContract;
+        }
         preserved returnFunds(uint256 amount) with (env e4)
         {
             require e4.msg.sender != currentContract;

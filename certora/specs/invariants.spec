@@ -113,37 +113,30 @@ invariant PersonalIndexLessOrEqualGlobalIndex(address asset, address user)
     getUserPersonalIndex(asset, user) <= getAssetGlobalIndex(asset)
 
 // Duplicate for usage in allProps.spec
+// This invariant is failing here and passing in propertiesWithSummarizations.spec
+// In the summarized spec the update reward functions are mutilated by returning
+// a NONDET value for _getRewards & _getAssetIndex . The reason for this
+// summarization is because the invariant does not claim anything about rewards.
 invariant allSharesAreBacked()
     previewRedeem(totalSupply()) <= stake_token.balanceOf(currentContract)
     {
-        preserved initialize(address slashingAdmin, address cooldownPauseAdmin,
-            address claimHelper, uint256 maxSlashablePercentage, uint256 cooldownSeconds)
-            with (env e)
+        preserved stake(address to, uint256 amount) with (env e2)
         {
-            require INITIAL_EXCHANGE_RATE() == getExchangeRate();
+            require e2.msg.sender != currentContract;
         }
-        preserved returnFunds(uint256 amount) with (env e3)
+        preserved stakeWithPermit(address from, uint256 amount, uint256 deadline,
+            uint8 v, bytes32 r, bytes32 s) with (env e3)
         {
             require e3.msg.sender != currentContract;
+            require from != currentContract;
         }
-        preserved stake(address to, uint256 amount) with (env e4)
+        preserved returnFunds(uint256 amount) with (env e4)
         {
             require e4.msg.sender != currentContract;
         }
-        preserved stakeWithPermit(address from, uint256 amount,
-            uint256 deadline, uint8 v, bytes32 r, bytes32 s) with (env e5)
+        preserved initialize(address slashingAdmin, address cooldownPauseAdmin, address claimHelper, 
+                            uint256 maxSlashablePercentage, uint256 cooldownSeconds) with (env e5)
         {
-            require e5.msg.sender != currentContract;
-        }
-        preserved with (env e1)
-        {
-//            requireInvariant exchangeRateCorrectness();
-            require e1.msg.sender != currentContract;
-        }
-        preserved claimRewards(address to, uint256 amount) with (env e6)
-        {
-            // TODO: Check that we have dome properties for correct rewards handling
-            //       and that rewards cannot lead to insolvency.
-            require _updateCurrentUnclaimedRewards(to, balanceOf(to), false) == 0;
+            require getExchangeRate() == INITIAL_EXCHANGE_RATE();
         }
     }
