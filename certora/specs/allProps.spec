@@ -680,7 +680,7 @@ rule exchangeRateNeverZero(method f) {
         }
             slash(dest, 0) || returnFunds(0)
         {
-            getExchangeRate() != ExchangeRateBefore
+            getExchangeRate() == ExchangeRateBefore
         }
 
     @Notes:
@@ -701,7 +701,7 @@ rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f) {
     uint216 ER_AfterReturnFunds = getExchangeRate();
 
     assert(ER_AfterSlash == ER_AfterReturnFunds);
-    assert(ER_AfterReturnFunds == _ER || ER_AfterReturnFunds == _ER + 1 || ER_AfterReturnFunds + 1 == _ER);
+    assert(ER_AfterReturnFunds == _ER);
 }
 
 // rule returnAfterSlashTheSameFundsDoesntChangeExchangeRate(method f) {
