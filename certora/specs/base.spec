@@ -28,10 +28,6 @@ methods {
     previewRedeem(uint256) returns (uint256) envfree
     permit(address, address, uint256, uint256, uint8, bytes32, bytes32) => NONDET
 
-    // TODO: uncomment and use?
-    // getActualAmountOfStaked() returns (uint256) envfree
-
-
     // address, block, delegation type
     _votingSnapshotsCounts(address) returns (uint256) envfree
     _updateCurrentUnclaimedRewards(address, uint256, bool) returns (uint256) envfree

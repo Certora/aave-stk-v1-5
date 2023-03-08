@@ -300,100 +300,6 @@ rule totalSupplyDoesNotDropToZero(method f, calldataarg args, env e) {
 }
 
 /*
-    @Rule noRedeemOutOfUnstakeWindow
-    @Description: Rule to verify that users can redeem while in post-slashing period.
-
-    @Formula:
-        {
-        }
-            redeem(to, amount)
-        {
-            (inPostSlashingPeriod = true) ||
-            (block.timestamp > cooldown + getCooldownSeconds() &&
-            block.timestamp - (cooldown + getCooldownSeconds()) <= UNSTAKE_WINDOW)
-        }
-
-    @Notes:
-    @Link:
-*/
-// rule redeemDuringPostSlashing(address to, uint256 amount){
-//     env e;
-
-//     require(inPostSlashingPeriod());
-//     require(e.msg.value == 0);
-//     require(amount > 0);
-//     require(amount <= balanceOf(e.msg.sender));
-//     require(getExchangeRate() != 0);
-
-//     uint256 underlyingToRedeem = amount * EXCHANGE_RATE_FACTOR() / getExchangeRate();
-//     require(stake_token.balanceOf(currentContract) >= underlyingToRedeem);
-
-//     redeem@withrevert(e, to, amount);
-
-//     assert !lastReverted;
-
-// }
-
-/*
-    @Rule cooldownCorrectness
-    @Description: Rule to verify the correctness of stakersCooldowns.
-         
-    @Formula: 
-        {
-            windowBefore := stakersCooldowns(msg.sender) + getCooldownSeconds() + UNSTAKE_WINDOW() - block.timestamp
-        }
-            <invoke any method f>
-        {
-            windowAfter := stakersCooldowns(msg.sender) + getCooldownSeconds + UNSTAKE_WINDOW() - block.timestamp,
-
-            (stakersCooldowns(msg.sender) + getCooldownSeconds()) <= block.timestamp => windowBefore >= windowAfter
-            (stakersCooldowns(msg.sender) + getCooldownSeconds()) > block.timestamp => windowBefore >= 0
-        }
-
-    @Notes:
-    @Link:
-*/
-/*
-rule cooldownCorrectnessOld(method f)
-filtered { 
-    f-> f.selector != initialize(address,address,address,uint256,uint256).selector &&
-        f.selector != setCooldownSeconds(uint256).selector 
-}
-{
-    env e;
-    calldataarg args;
-    address user = e.msg.sender;
-    require(user != 0 && user != currentContract);
-    require(e.block.timestamp > getCooldownSeconds() + UNSTAKE_WINDOW());
-    require(getCooldownSeconds() > 0);
-
-    uint72 cooldownBefore;
-    //TODO: Write a similar rule which will make sure we cannot unstake more than X during the UNSTAKE_PERIOD,
-    //      where X is the balance of the user at the time, when the cooldown button was pressed.
-    cooldownBefore, _ = stakersCooldowns(e.msg.sender); // timestamp when was the cooldown initiated
-
-    //The following 2 requirements make sure we are in the unstake period
-    require(e.block.timestamp > cooldownBefore + getCooldownSeconds());
-    require(e.block.timestamp - (cooldownBefore + getCooldownSeconds()) <= UNSTAKE_WINDOW());
-
-    // The exact time we have left until we get to EXPIRE.
-    mathint windowBefore = cooldownBefore + getCooldownSeconds() + UNSTAKE_WINDOW() - e.block.timestamp;
-
-    f(e, args);
-
-    uint72 cooldownAfter;
-    cooldownAfter, _ = stakersCooldowns(e.msg.sender);
-
-    // The exact time we have left until we get to EXPIRE.
-    mathint windowAfter = ((cooldownAfter + getCooldownSeconds()) > e.block.timestamp 
-        ? 0
-        : cooldownAfter + getCooldownSeconds() + UNSTAKE_WINDOW() - e.block.timestamp);
-
-    assert windowAfter <= windowBefore;
-}
-*/
-
-/*
     @Rule cooldownCorrectness
     @Description: Rule to verify the correctness of stakersCooldowns.
 
@@ -516,35 +422,6 @@ filtered {
 
     assert(_deservedRewards <= deservedRewards_);
 }
-
-/*
-    @Rule collectedRewardsMonotonicallyIncrease
-    @Description: Rewards monotonically increasing for non claim functions.
-
-    @Formula:
-        {
-        }
-            claimedAmount := claimRewardsOnBehalf(from, receiver, max_uint256)
-        {
-        }
-
-    @Notes:
-    @Link:
-*/
-// rule collectedRewardsMonotonicallyIncrease(method f, address from, address to) {
-//     env e;
-//     storage initialStorage = lastStorage;
-
-//     uint256 _collectedRewards = claimRewardsOnBehalf(e, from, to, max_uint256);
-
-//     env e2; calldataarg args;
-//     require e2.block.timestamp >= e.block.timestamp;
-//     configureAssets(e2, args) at initialStorage;
-
-//     uint256 collectedRewards_ = claimRewardsOnBehalf(e, from, to, max_uint256);
-
-//     assert(!claimRewards_funcs(f) => collectedRewards_ >= _collectedRewards);
-// }
 
 /*
     @Rule indexesMonotonicallyIncrease
@@ -703,22 +580,6 @@ rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f) {
     assert(ER_AfterSlash == ER_AfterReturnFunds);
     assert(ER_AfterReturnFunds == _ER);
 }
-
-// rule returnAfterSlashTheSameFundsDoesntChangeExchangeRate(method f) {
-//     env e;
-//     address dest; uint256 amt = 1;
-//     uint216 _ER = getExchangeRate();
-//     storage initialStorage = lastStorage;
-//     // remove this reuqire later. this is just to get more realistic values
-//     // require _ER < 100; // > EXCHANGE_RATE_FACTOR() / 3;
-
-//     slash(e, dest, amt);
-
-//     returnFunds(e, amt);
-//     uint216 ER_AfterReturnFunds = getExchangeRate();
-
-//     assert(ER_AfterReturnFunds == _ER);
-// }
 
 /*
     @Rule integrityOfRedeem
