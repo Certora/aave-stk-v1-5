@@ -285,6 +285,12 @@ rule noRedeemOutOfUnstakeWindow(address to, uint256 amount){
         e.block.timestamp - (cooldown + getCooldownSeconds()) <= UNSTAKE_WINDOW());
 }
 
+/*
+    @Rule totalSupplyDoesNotDropToZero
+    @Description: When the totalSupply is positive, it can never become zero.
+    @Notes:
+    @Link:
+*/
 rule totalSupplyDoesNotDropToZero(method f, calldataarg args, env e) {
     require totalSupply() > 0;
 
@@ -447,31 +453,16 @@ rule rewardsGetterEquivalentClaim(method f, env e, address to, address from) {
     uint256 _receiverBalance = reward_token.balanceOf(to);
 
     uint256 claimedAmount = claimRewardsOnBehalf(e, from, to, max_uint256);
-    
+
     uint256 receiverBalance_ = reward_token.balanceOf(to);
-    
+
     assert(deservedRewards == claimedAmount);
     assert(receiverBalance_ == _receiverBalance + claimedAmount);
 }
 
 /*
     @Rule rewardsMonotonicallyIncrease
-    @Description: Rewards monotonically increasing for non claim functions.
-         
-    @Formula: 
-        {
-            deservedRewardsBefore := getTotalRewardsBalance(user)
-        }
-            <invoke any method f>
-        {
-            deservedRewardsBefore < getTotalRewardsBalance(user) => 
-                f = claimRewards(address, uint256) ||
-                f = claimRewardsOnBehalf(address, address, uint256) ||
-                f = claimRewardsAndStake(address, uint256) ||
-                f = claimRewardsAndStakeOnBehalf(address, address, uint256) ||
-                f = claimRewardsAndRedeem(address, uint256, uint256) ||
-                f = claimRewardsAndRedeemOnBehalf(address, address, uint256, uint256)
-        }
+    @Description: Rewards monotonically increasing as time progresses.
 
     @Notes:
     @Link:
@@ -486,6 +477,29 @@ rule rewardsMonotonicallyIncrease(address user, env e, env e2) {
     assert(deservedRewards_ >= _deservedRewards);
 }
 
+/*
+    @Rule rewardsIncreaseForNonClaimFunctions
+    @Description: Rewards monotonically increasing for non claim functions.
+
+    @Formula:
+        {
+            deservedRewardsBefore := getTotalRewardsBalance(user)
+        }
+            <invoke any method f>
+        {
+            deservedRewardsAfter := getTotalRewardsBalance(user)
+
+            f != claimRewards(address, uint256) &&
+            f != claimRewardsOnBehalf(address, address, uint256) &&
+            f != claimRewardsAndStake(address, uint256) &&
+            f != claimRewardsAndStakeOnBehalf(address, address, uint256) &&
+            f != claimRewardsAndRedeem(address, uint256, uint256) &&
+            f != claimRewardsAndRedeemOnBehalf(address, address, uint256, uint256)
+            => deservedRewardsBefore <= deservedRewardsAfter
+        }
+    @Notes: We skip verification for view functions as those cannot change anything.
+    @Link:
+*/
 rule rewardsIncreaseForNonClaimFunctions(method f, address user, env e)
 filtered {
     f -> !f.isView && !claimRewards_funcs(f)
@@ -500,7 +514,7 @@ filtered {
 
     uint256 deservedRewards_ = getTotalRewardsBalance(e, user);
 
-    assert(deservedRewards_ >= _deservedRewards);
+    assert(_deservedRewards <= deservedRewards_);
 }
 
 /*
@@ -636,7 +650,11 @@ rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
             getExchangeRate() != 0
         }
 
-    @Notes:
+    @Notes: We used the following require to prove, that violation of this rule happened
+            when totalSupply() == 0:
+            require f.selector == returnFunds(uint256).selector => totalSupply() != 0;
+            This has been solved by Lukas in this commit:
+            https://github.com/Certora/aave-stk-slashing-mgmt/pull/1/commits/8336dc0747965a06c7dc39b4f89273c4ef7ed18a
     @Link:
 */
 
@@ -644,9 +662,6 @@ rule exchangeRateNeverZero(method f) {
     env e; calldataarg args;
     uint216 _ER = getExchangeRate();
     require _ER != 0;
-
-    // This require proves, that the exchange rate can be 0 only when totalSupply is 0.
-    // require f.selector == returnFunds(uint256).selector => totalSupply() != 0;
 
     f(e, args);
 
@@ -707,16 +722,19 @@ rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f) {
 
 /*
     @Rule integrityOfRedeem
-    @Description: Preview redeem returns the same underlying amount to redeem as redeem (doing the same calculation).
-         
-    @Formula: 
+    @Description: When amount to redeem is not greater than the cooldown amount of the
+        message sender, previewRedeem computes the same underlying amount as redeem.
+
+    @Formula:
         {
             totalUnderlying := previewRedeem(amount),
             receiverBalanceBefore := stake_token.balanceOf(receiver)
         }
             redeem(receiver, amount)
         {
-            totalUnderlying = stake_token.balanceOf(receiver) - receiverBalanceBefore
+            receiverBalanceAfter := stake_token.balanceOf(receiver)
+            amount <= cooldownAmount(e.msg.sender) =>
+                totalUnderlying == receiverBalanceAfter - receiverBalanceBefore
         }
 
     @Notes:
