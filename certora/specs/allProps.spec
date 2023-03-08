@@ -1,5 +1,6 @@
 import "base.spec"
-import "invariants.spec"
+// import "invariants.spec"
+import "propertiesWithSummarizations.spec"
 
 use invariant allSharesAreBacked
 use invariant balanceOfZero
