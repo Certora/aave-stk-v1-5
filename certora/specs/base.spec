@@ -28,14 +28,18 @@ methods {
     previewRedeem(uint256) returns (uint256) envfree
     permit(address, address, uint256, uint256, uint8, bytes32, bytes32) => NONDET
 
-    // address, block, delegation type 
+    // TODO: uncomment and use?
+    // getActualAmountOfStaked() returns (uint256) envfree
+
+
+    // address, block, delegation type
     _votingSnapshotsCounts(address) returns (uint256) envfree
     _updateCurrentUnclaimedRewards(address, uint256, bool) returns (uint256) envfree
 
     // view but not envfree - uses block.timestamp
     getNextCooldownTimestamp(uint256,uint256,address,uint256)
     getPowerAtBlock(address,uint256,uint8) returns (uint256)
-    
+
     // state changing operations
     initialize(address,address,address,uint256,uint256)
     stake(address,uint256)

@@ -20,7 +20,7 @@ hook Sstore _currentExchangeRate uint216 new_rate (uint216 old_rate) STORAGE {
 invariant exchangeRateCorrectness()
     getExchangeRate() == 
         // TODO: add this variable into munged contract:
-        // actual_amount_of_underlying_staked_in_pool * EXCHANGE_RATE_FACTOR() / totalSupply() {
+        // getActualAmountOfStaked() * EXCHANGE_RATE_FACTOR() / totalSupply() {
         stake_token.balanceOf(currentContract) * EXCHANGE_RATE_FACTOR() / totalSupply() {
         preserved {
             // require totalSupply() != 0;

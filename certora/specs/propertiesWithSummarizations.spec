@@ -43,6 +43,9 @@ invariant allSharesAreBacked()
         }
     }
 
+invariant getActualAmountOfStakedIsBalanceOfContract()
+    getActualAmountOfStaked() == stake_token.balanceOf(currentContract)
+
 // // All shares are backed by at enough underlying token
 // invariant allStakedAaveBacked(env e)
 //     stake_token.balanceOf(currentContract) >= totalSupply()/getExchangeRate()
