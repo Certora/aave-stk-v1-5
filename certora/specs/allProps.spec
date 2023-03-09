@@ -4,9 +4,10 @@ import "propertiesWithSummarizations.spec"
 
 use invariant allSharesAreBacked
 use invariant cooldownAmountNotGreaterThanBalance
+use invariant cooldownDataCorrectness // this is imported because we use it in invariants.spec
 use invariant lowerBoundNotZero
 use invariant PersonalIndexLessOrEqualGlobalIndex
-use invariant totalSupplyGreaterThanUserBalance
+use invariant totalSupplyGreaterThanUserBalance // this is imported because we use it in invariants.spec
 
 /*
     @Rule integrityOfStaking
@@ -288,6 +289,10 @@ rule noRedeemOutOfUnstakeWindow(address to, uint256 amount){
 rule totalSupplyDoesNotDropToZero(method f, calldataarg args, env e) {
     require totalSupply() > 0;
     requireInvariant lowerBoundNotZero();
+
+    address user = e.msg.sender;
+    require(user != 0 && user != currentContract);
+    requireInvariant totalSupplyGreaterThanUserBalance(user);
 
     f(e, args);
 
