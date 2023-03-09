@@ -1,19 +1,19 @@
-//import "base.spec"
-import "invariants.spec"
+// import "base.spec"
+// import "invariants.spec"
 
-methods {
-    _getRewards(uint256, uint256, uint256) => NONDET
-    _getAssetIndex(uint256, uint256, uint128, uint256) => NONDET
-}
+// methods {
+//     _getRewards(uint256, uint256, uint256) => NONDET
+//     _getAssetIndex(uint256, uint256, uint128, uint256) => NONDET
+// }
 
-// use invariant exchangeRateCorrectness
-// use invariant allSharesAreBacked
-use invariant balanceOfZero
-use invariant cooldownAmountNotGreaterThanBalance
-use invariant cooldownDataCorrectness
-use invariant lowerBoundNotZero
-use invariant PersonalIndexLessOrEqualGlobalIndex
-use invariant totalSupplyGreaterThanUserBalance
+// // use invariant exchangeRateCorrectness
+// // use invariant allSharesAreBacked
+// use invariant balanceOfZero
+// use invariant cooldownAmountNotGreaterThanBalance
+// use invariant cooldownDataCorrectness
+// use invariant lowerBoundNotZero
+// use invariant PersonalIndexLessOrEqualGlobalIndex
+// use invariant totalSupplyGreaterThanUserBalance
 
 // Shares value cannot exceed actual locked amount of staked token
 // The update rewards functions are mutilated by returning
