@@ -3,9 +3,7 @@ import "invariants.spec"
 import "propertiesWithSummarizations.spec"
 
 use invariant allSharesAreBacked
-use invariant balanceOfZero
 use invariant cooldownAmountNotGreaterThanBalance
-use invariant cooldownDataCorrectness
 use invariant lowerBoundNotZero
 use invariant PersonalIndexLessOrEqualGlobalIndex
 use invariant totalSupplyGreaterThanUserBalance
