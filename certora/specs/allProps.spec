@@ -29,7 +29,7 @@ use invariant totalSupplyGreaterThanUserBalance
         }
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 // stkAmount_t1 = amount * exchangeRate_t0 / 1e18
 rule integrityOfStaking(address onBehalfOf, uint256 amount) {
@@ -72,7 +72,7 @@ rule integrityOfStaking(address onBehalfOf, uint256 amount) {
         }
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule noStakingPostSlashingPeriod(address onBehalfOf, uint256 amount) {
     env e;
@@ -96,7 +96,7 @@ rule noStakingPostSlashingPeriod(address onBehalfOf, uint256 amount) {
         }
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule noSlashingMoreThanMax(uint256 amount, address recipient){
     env e;
@@ -132,7 +132,7 @@ rule noSlashingMoreThanMax(uint256 amount, address recipient){
         }
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule integrityOfSlashing(address to, uint256 amount){
     env e;
@@ -163,10 +163,6 @@ rule integrityOfSlashing(address to, uint256 amount){
     assert balanceStakeTokenToAfter == balanceStakeTokenToBefore + amountToSlash;
     assert balanceStakeTokenVaultAfter == balanceStakeTokenVaultBefore - amountToSlash;
     assert inPostSlashingPeriod();
-
-    // return uint128(((totalShares * TOKEN_UNIT) + TOKEN_UNIT) / totalAssets);
-    // doesn't work - should be proven with invariant or dedicated rule for exchange rate change
-    // assert getExchangeRate() == totalSupply() * EXCHANGE_RATE_FACTOR() / balanceStakeTokenVaultAfter;
 }
 
 /*
@@ -186,7 +182,7 @@ rule integrityOfSlashing(address to, uint256 amount){
         }
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule integrityOfReturnFunds(uint256 amount){
     env e;
@@ -219,7 +215,7 @@ rule integrityOfReturnFunds(uint256 amount){
         }
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule noEntryUntilSlashingSettled(uint256 amount){
     env e;
@@ -244,7 +240,7 @@ rule noEntryUntilSlashingSettled(uint256 amount){
         }
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule airdropNotMutualized(uint256 amount){
     env e;
@@ -270,7 +266,7 @@ rule airdropNotMutualized(uint256 amount){
         }
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule noRedeemOutOfUnstakeWindow(address to, uint256 amount){
     env e;
@@ -305,7 +301,7 @@ rule totalSupplyDoesNotDropToZero(method f, calldataarg args, env e) {
 
     @Notes: During unstake period, each user should be able to unstake at most
             the amount they had when the cooldown has been initiated.
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule cooldownCorrectness(env e)
 {
@@ -351,7 +347,7 @@ rule cooldownCorrectness(env e)
         }
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule rewardsGetterEquivalentClaim(method f, env e, address to, address from) {
     require to != REWARDS_VAULT();
@@ -371,7 +367,7 @@ rule rewardsGetterEquivalentClaim(method f, env e, address to, address from) {
     @Description: Rewards monotonically increasing as time progresses.
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule rewardsMonotonicallyIncrease(address user, env e, env e2) {
     uint256 _deservedRewards = getTotalRewardsBalance(e, user);
@@ -404,7 +400,7 @@ rule rewardsMonotonicallyIncrease(address user, env e, env e2) {
             => deservedRewardsBefore <= deservedRewardsAfter
         }
     @Notes: We skip verification for view functions as those cannot change anything.
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule rewardsIncreaseForNonClaimFunctions(method f, address user, env e)
 filtered {
@@ -413,9 +409,6 @@ filtered {
     uint256 _deservedRewards = getTotalRewardsBalance(e, user);
 
     requireInvariant totalSupplyGreaterThanUserBalance(user);
-
-    // Note: This is proved invariant allSharesAreBacked in propertiesWithSummarizations.spec
-    //require previewRedeem(totalSupply()) <= stake_token.balanceOf(currentContract);
     requireInvariant allSharesAreBacked();
 
     calldataarg args;
@@ -442,7 +435,7 @@ filtered {
         }
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule indexesMonotonicallyIncrease(method f, address asset, address user) {
     requireInvariant PersonalIndexLessOrEqualGlobalIndex(asset, user);
@@ -473,7 +466,7 @@ rule indexesMonotonicallyIncrease(method f, address asset, address user) {
         }
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule slashingIncreaseExchangeRate(address receiver, uint256 amount) {
     env e; calldataarg args;
@@ -501,7 +494,7 @@ rule slashingIncreaseExchangeRate(address receiver, uint256 amount) {
         }
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
     env e;
@@ -535,7 +528,7 @@ rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
             require f.selector == returnFunds(uint256).selector => totalSupply() != 0;
             This has been solved by Lukas in this commit:
             https://github.com/Certora/aave-stk-slashing-mgmt/pull/1/commits/8336dc0747965a06c7dc39b4f89273c4ef7ed18a
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 
 rule exchangeRateNeverZero(method f) {
@@ -564,7 +557,7 @@ rule exchangeRateNeverZero(method f) {
         }
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f) {
     env e;
@@ -602,7 +595,7 @@ rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f) {
         }
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule integrityOfRedeem(method f, env e, address to, uint256 amount) {
     require balanceOf(e.msg.sender) >= amount;
@@ -633,7 +626,7 @@ rule integrityOfRedeem(method f, env e, address to, uint256 amount) {
         }
 
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
 rule previewStakeEquivalentStake(method f, env e, address to, uint256 amount){
     requireInvariant totalSupplyGreaterThanUserBalance(to);
