@@ -8,15 +8,16 @@ ghost uint216 exchangeRate {
     init_state axiom exchangeRate == INITIAL_EXCHANGE_RATE();
 }
 
-// hook example
-// hook Sstore _balances[KEY address user].delegationState uint8 new_state (uint8 old_state) STORAGE {
-//     totalStaked = totalStaked - old_state + new_state;
-// }
-
 hook Sstore _currentExchangeRate uint216 new_rate (uint216 old_rate) STORAGE {
     exchangeRate = new_rate;
 }
 
+/*
+    @Invariant exchangeRateCorrectness
+    @Description:
+    @Notes:
+    @Link: https://prover.certora.com/output/40577/55c78438915b43cfa84014b153baee5e/?anonymousKey=cc47986c3d9dc44e8801e3e591ec56d048e26f30
+*/
 invariant exchangeRateCorrectness()
     getExchangeRate() ==
         // TODO: add this variable into munged contract:
@@ -30,14 +31,26 @@ invariant exchangeRateCorrectness()
         }
     }
 
-// The balance of address zero is 0
+/*
+    @Invariant balanceOfZero
+    @Description: The balance of address zero is 0
+    @Link: https://prover.certora.com/output/40577/55c78438915b43cfa84014b153baee5e/?anonymousKey=cc47986c3d9dc44e8801e3e591ec56d048e26f30
+*/
 invariant balanceOfZero()
     balanceOf(0) == 0
 
+/*
+    @Invariant lowerBoundNotZero
+    @Link: https://prover.certora.com/output/40577/55c78438915b43cfa84014b153baee5e/?anonymousKey=cc47986c3d9dc44e8801e3e591ec56d048e26f30
+*/
 invariant lowerBoundNotZero()
     LOWER_BOUND() > 0
 
-// When cooldown amount of user nonzero, the cooldown had to be triggered
+/*
+    @Invariant cooldownDataCorrectness
+    @Description: When cooldown amount of user nonzero, the cooldown had to be triggered
+    @Link: https://prover.certora.com/output/40577/55c78438915b43cfa84014b153baee5e/?anonymousKey=cc47986c3d9dc44e8801e3e591ec56d048e26f30
+*/
 invariant cooldownDataCorrectness(address user, env e)
     cooldownAmount(user) > 0 => cooldownTimestamp(user) > 0
     {
@@ -49,7 +62,11 @@ invariant cooldownDataCorrectness(address user, env e)
         }
     }
 
-// The cooldown amount does not exceed users balance.
+/*
+    @Invariant cooldownAmountNotGreaterThanBalance
+    @Description: No user can have greater cooldown amount than is their balance.
+    @Link: https://prover.certora.com/output/40577/55c78438915b43cfa84014b153baee5e/?anonymousKey=cc47986c3d9dc44e8801e3e591ec56d048e26f30
+*/
 invariant cooldownAmountNotGreaterThanBalance(address user)
     balanceOf(user) >= cooldownAmount(user)
     {
@@ -72,8 +89,11 @@ invariant cooldownAmountNotGreaterThanBalance(address user)
         }
     }
 
-
-// The total supply amount of shares is greater or equal to any user's share balance
+/*
+    @Invariant totalSupplyGreaterThanUserBalance
+    @Description: The total supply amount of shares is greater or equal to any user's share balance.
+    @Link: https://prover.certora.com/output/40577/55c78438915b43cfa84014b153baee5e/?anonymousKey=cc47986c3d9dc44e8801e3e591ec56d048e26f30
+*/
 invariant totalSupplyGreaterThanUserBalance(address user)
     totalSupply() >= balanceOf(user)
     {
@@ -107,8 +127,12 @@ invariant totalSupplyGreaterThanUserBalance(address user)
         }
     }
 
-// The personal index of a user on a specific asset is at most equal to the global index of the same asset
-// User's personal index is derived from the global index, and therefore cannot exceed it
+/*
+    @Invariant PersonalIndexLessOrEqualGlobalIndex
+    @Description: The personal index of a user on a specific asset is at most equal to the global index of the same asset.
+                  As user's personal index is derived from the global index, and therefore cannot exceed it
+    @Link: https://prover.certora.com/output/40577/55c78438915b43cfa84014b153baee5e/?anonymousKey=cc47986c3d9dc44e8801e3e591ec56d048e26f30
+*/
 invariant PersonalIndexLessOrEqualGlobalIndex(address asset, address user)
     getUserPersonalIndex(asset, user) <= getAssetGlobalIndex(asset)
 
