@@ -287,6 +287,7 @@ rule noRedeemOutOfUnstakeWindow(address to, uint256 amount){
 */
 rule totalSupplyDoesNotDropToZero(method f, calldataarg args, env e) {
     require totalSupply() > 0;
+    requireInvariant lowerBoundNotZero();
 
     f(e, args);
 
