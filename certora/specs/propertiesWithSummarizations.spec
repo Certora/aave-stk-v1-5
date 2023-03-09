@@ -1,4 +1,4 @@
-import "base.spec"
+//import "base.spec"
 import "invariants.spec"
 
 methods {

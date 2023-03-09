@@ -1,8 +1,8 @@
-import "base.spec"
-// import "invariants.spec"
-import "propertiesWithSummarizations.spec"
+// import "base.spec"
+import "invariants.spec"
+// import "propertiesWithSummarizations.spec"
 
-use invariant allSharesAreBacked
+// use invariant allSharesAreBacked
 use invariant balanceOfZero
 use invariant cooldownAmountNotGreaterThanBalance
 use invariant cooldownDataCorrectness
@@ -413,7 +413,9 @@ filtered {
     uint256 _deservedRewards = getTotalRewardsBalance(e, user);
 
     requireInvariant totalSupplyGreaterThanUserBalance(user);
-    requireInvariant allSharesAreBacked();
+
+    // Note: This is proved invariant allSharesAreBacked in propertiesWithSummarizations.spec
+    require previewRedeem(totalSupply()) <= stake_token.balanceOf(currentContract);
 
     calldataarg args;
     f(e, args);

@@ -18,7 +18,7 @@ hook Sstore _currentExchangeRate uint216 new_rate (uint216 old_rate) STORAGE {
 }
 
 invariant exchangeRateCorrectness()
-    getExchangeRate() == 
+    getExchangeRate() ==
         // TODO: add this variable into munged contract:
         // getActualAmountOfStaked() * EXCHANGE_RATE_FACTOR() / totalSupply() {
         stake_token.balanceOf(currentContract) * EXCHANGE_RATE_FACTOR() / totalSupply() {
@@ -134,7 +134,7 @@ invariant PersonalIndexLessOrEqualGlobalIndex(address asset, address user)
 //         {
 //             require e4.msg.sender != currentContract;
 //         }
-//         preserved initialize(address slashingAdmin, address cooldownPauseAdmin, address claimHelper, 
+//         preserved initialize(address slashingAdmin, address cooldownPauseAdmin, address claimHelper,
 //                             uint256 maxSlashablePercentage, uint256 cooldownSeconds) with (env e5)
 //         {
 //             require getExchangeRate() == INITIAL_EXCHANGE_RATE();
