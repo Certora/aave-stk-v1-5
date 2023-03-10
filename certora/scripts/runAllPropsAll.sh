@@ -1,4 +1,5 @@
 /bin/bash ./certora/scripts/runAllProps.sh \
+"everything in allProps.spec" \
 integrityOfStaking \
 noStakingPostSlashingPeriod \
 noSlashingMoreThanMax \
