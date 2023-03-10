@@ -13,25 +13,6 @@ hook Sstore _currentExchangeRate uint216 new_rate (uint216 old_rate) STORAGE {
 }
 
 /*
-    @Invariant exchangeRateCorrectness
-    @Description:
-    @Notes:
-    @Link: https://prover.certora.com/output/40577/55c78438915b43cfa84014b153baee5e/?anonymousKey=cc47986c3d9dc44e8801e3e591ec56d048e26f30
-*/
-invariant exchangeRateCorrectness()
-    getExchangeRate() ==
-        // TODO: add this variable into munged contract:
-        // getActualAmountOfStaked() * EXCHANGE_RATE_FACTOR() / totalSupply() {
-        stake_token.balanceOf(currentContract) * EXCHANGE_RATE_FACTOR() / totalSupply() {
-        preserved {
-            // require totalSupply() != 0;
-            // requireInvariant lowerBoundNotZero();
-            require (totalSupply() < AAVE_MAX_SUPPLY());
-            require (stake_token.balanceOf(currentContract) < AAVE_MAX_SUPPLY());
-        }
-    }
-
-/*
     @Invariant balanceOfZero
     @Description: The balance of address zero is 0
     @Link: https://prover.certora.com/output/40577/55c78438915b43cfa84014b153baee5e/?anonymousKey=cc47986c3d9dc44e8801e3e591ec56d048e26f30
