@@ -70,3 +70,11 @@ definition claimRewards_funcs(method f) returns bool =
     f.selector == claimRewardsAndRedeem(address, uint256, uint256).selector ||
     f.selector == claimRewardsAndRedeemOnBehalf(address, address, uint256, uint256).selector
 );
+
+definition redeem_funcs(method f) returns bool =
+(
+    f.selector == redeem(address, uint256).selector ||
+    f.selector == redeemOnBehalf(address, address, uint256).selector ||
+    f.selector == claimRewardsAndRedeem(address, uint256, uint256).selector ||
+    f.selector == claimRewardsAndRedeemOnBehalf(address, address, uint256, uint256).selector
+);

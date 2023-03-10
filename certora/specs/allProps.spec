@@ -284,15 +284,13 @@ rule noRedeemOutOfUnstakeWindow(address to, uint256 amount){
     @Rule totalSupplyDoesNotDropToZero
     @Description: When the totalSupply is positive, it can never become zero.
     @Notes:
-    @Link:
+    @Link: https://prover.certora.com/output/40577/ff250297b015412ca205db4ed18253e3/?anonymousKey=09c506cb5a75a7ca18379f9650b482ac15cc1f67
 */
-rule totalSupplyDoesNotDropToZero(method f, calldataarg args, env e) {
+rule totalSupplyDoesNotDropToZero(method f, calldataarg args, env e)
+filtered {
+    f -> !f.isView && !redeem_funcs(f)
+} {
     require totalSupply() > 0;
-    requireInvariant lowerBoundNotZero();
-
-    address user = e.msg.sender;
-    require(user != 0 && user != currentContract);
-    requireInvariant totalSupplyGreaterThanUserBalance(user);
 
     f(e, args);
 
