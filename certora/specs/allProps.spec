@@ -561,13 +561,11 @@ rule exchangeRateNeverZero(method f) {
     @Notes:
     @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
-rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate(method f) {
+rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate() {
     env e;
     address dest; uint256 amt = 0;
     uint216 _ER = getExchangeRate();
     storage initialStorage = lastStorage;
-    // remove this require later. this is just to get more realistic values
-    // require _ER > EXCHANGE_RATE_FACTOR() / 3;
 
     slash(e, dest, amt);
     uint216 ER_AfterSlash = getExchangeRate();
