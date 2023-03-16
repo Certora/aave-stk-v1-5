@@ -30,7 +30,6 @@ use invariant totalSupplyGreaterThanUserBalance // this is imported because we u
     @Notes:
     @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
-// stkAmount_t1 = amount * exchangeRate_t0 / 1e18
 rule integrityOfStaking(address onBehalfOf, uint256 amount) {
     env e;
     require(amount < AAVE_MAX_SUPPLY());
@@ -532,7 +531,6 @@ rule returnFundsDecreaseExchangeRate(address receiver, uint256 amount) {
             https://github.com/Certora/aave-stk-slashing-mgmt/pull/1/commits/8336dc0747965a06c7dc39b4f89273c4ef7ed18a
     @Link: https://prover.certora.com/output/40577/3fdb151c46c84b1ab323b99c80890273/?anonymousKey=68e37ada870b7b91c68a5eadaf6030f3989002a6
 */
-
 rule exchangeRateNeverZero(method f) {
     env e; calldataarg args;
     uint216 _ER = getExchangeRate();
