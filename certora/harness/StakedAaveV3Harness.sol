@@ -7,9 +7,19 @@ import {IERC20} from '../munged/interfaces/IERC20.sol';
 contract StakedAaveV3Harness is StakedAaveV3 {
 
     constructor(IERC20 stakedToken, IERC20 rewardToken, uint256 unstakeWindow, address rewardsVault,
-                address emissionManager, uint128 distributionDuration, address ghoDebtToken)
+                address emissionManager, uint128 distributionDuration)
         StakedAaveV3(stakedToken, rewardToken, unstakeWindow, rewardsVault,
-                    emissionManager, distributionDuration, ghoDebtToken) {}
+                    emissionManager, distributionDuration) {}
+
+    // Returns amount of the cooldown initiated by the user.
+    function cooldownAmount(address user) public view returns (uint216) {
+        return stakersCooldowns[user].amount;
+    }
+
+    // Returns timestamp of the cooldown initiated by the user.
+    function cooldownTimestamp(address user) public view returns (uint40) {
+        return stakersCooldowns[user].timestamp;
+    }
 
     // Returns the asset's emission per second from the sturct
     function getAssetEmissionPerSecond(address token) public view returns (uint128) {

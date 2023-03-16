@@ -1,21 +1,11 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-// most imports are only here to force import order for better (i.e smaller) diff on flattening
-import {Context} from '../lib/Context.sol';
 import {IERC20} from '../interfaces/IERC20.sol';
-import {ERC20} from '../lib/ERC20.sol';
-import {ITransferHook} from '../interfaces/ITransferHook.sol';
 import {DistributionTypes} from '../lib/DistributionTypes.sol';
-import {Address} from '../lib/Address.sol';
 import {SafeERC20} from '../lib/SafeERC20.sol';
-import {VersionedInitializable} from '../utils/VersionedInitializable.sol';
 import {IAaveDistributionManager} from '../interfaces/IAaveDistributionManager.sol';
-import {AaveDistributionManager} from './AaveDistributionManager.sol';
-import {IGovernancePowerDelegationToken} from '../interfaces/IGovernancePowerDelegationToken.sol';
-import {GovernancePowerDelegationERC20} from '../lib/GovernancePowerDelegationERC20.sol';
-import {GovernancePowerWithSnapshot} from '../lib/GovernancePowerWithSnapshot.sol';
-import {IERC20WithPermit} from '../interfaces/IERC20WithPermit.sol';
+import {IERC20Metadata} from '../interfaces/IERC20Metadata.sol';
 import {IStakedTokenV2} from '../interfaces/IStakedTokenV2.sol';
 import {StakedTokenV2} from './StakedTokenV2.sol';
 import {IStakedTokenV3} from '../interfaces/IStakedTokenV3.sol';
@@ -43,6 +33,10 @@ contract StakedTokenV3 is
   uint256 public constant CLAIM_HELPER_ROLE = 2;
   uint216 public constant INITIAL_EXCHANGE_RATE = 1e18;
   uint256 public constant EXCHANGE_RATE_UNIT = 1e18;
+
+  /// @notice lower bound to prevent spam & avoid excahngeRate issues
+  // as returnFunds can be called permissionless an attacker could spam returnFunds(1) to produce exchangeRate snapshots making voting expensive
+  uint256 public immutable LOWER_BOUND;
 
   /// @notice Seconds between starting cooldown and being able to withdraw
   uint256 internal _cooldownSeconds;
@@ -93,13 +87,18 @@ contract StakedTokenV3 is
       emissionManager,
       distributionDuration
     )
-  {}
+  {
+    // brick initialize
+    lastInitializedRevision = REVISION();
+    uint256 decimals = IERC20Metadata(address(stakedToken)).decimals();
+    LOWER_BOUND = 10**decimals;
+  }
 
   /**
    * @dev returns the revision of the implementation contract
    * @return The revision
    */
-  function REVISION() public pure virtual override returns (uint256) {
+  function REVISION() public pure virtual returns (uint256) {
     return 3;
   }
 
@@ -189,33 +188,11 @@ contract StakedTokenV3 is
     uint256 amount = balanceOf(from);
     require(amount != 0, 'INVALID_BALANCE_ON_COOLDOWN');
     stakersCooldowns[from] = CooldownSnapshot({
-      timestamp: uint72(block.timestamp),
-      amount: uint184(amount)
+      timestamp: uint40(block.timestamp),
+      amount: uint216(amount)
     });
 
     emit Cooldown(from, amount);
-  }
-
-  /// @inheritdoc IStakedTokenV3
-  function stakeWithPermit(
-    address from,
-    address to,
-    uint256 amount,
-    uint256 deadline,
-    uint8 v,
-    bytes32 r,
-    bytes32 s
-  ) external override {
-    IERC20WithPermit(address(STAKED_TOKEN)).permit(
-      from,
-      address(this),
-      amount,
-      deadline,
-      v,
-      r,
-      s
-    );
-    _stake(from, to, amount);
   }
 
   /// @inheritdoc IStakedTokenV2
@@ -250,24 +227,6 @@ contract StakedTokenV3 is
     uint256 amount
   ) external override onlyClaimHelper returns (uint256) {
     return _claimRewards(from, to, amount);
-  }
-
-  /// @inheritdoc IStakedTokenV3
-  function claimRewardsAndStake(address to, uint256 amount)
-    external
-    override
-    returns (uint256)
-  {
-    return _claimRewardsAndStakeOnBehalf(msg.sender, to, amount);
-  }
-
-  /// @inheritdoc IStakedTokenV3
-  function claimRewardsAndStakeOnBehalf(
-    address from,
-    address to,
-    uint256 amount
-  ) external override onlyClaimHelper returns (uint256) {
-    return _claimRewardsAndStakeOnBehalf(from, to, amount);
   }
 
   /// @inheritdoc IStakedTokenV3
@@ -314,6 +273,7 @@ contract StakedTokenV3 is
     returns (uint256)
   {
     require(!inPostSlashingPeriod, 'PREVIOUS_SLASHING_NOT_SETTLED');
+    require(amount > 0, 'ZERO_AMOUNT');
     uint256 currentShares = totalSupply();
     uint256 balance = previewRedeem(currentShares);
 
@@ -322,6 +282,7 @@ contract StakedTokenV3 is
     if (amount > maxSlashable) {
       amount = maxSlashable;
     }
+    require(balance - amount >= LOWER_BOUND, 'REMAINING_LT_MINIMUM');
 
     inPostSlashingPeriod = true;
     _updateExchangeRate(_getExchangeRate(balance - amount, currentShares));
@@ -334,7 +295,9 @@ contract StakedTokenV3 is
 
   /// @inheritdoc IStakedTokenV3
   function returnFunds(uint256 amount) external override {
+    require(amount >= LOWER_BOUND, 'AMOUNT_LT_MINIMUM');
     uint256 currentShares = totalSupply();
+    require(currentShares >= LOWER_BOUND, 'SHARES_LT_MINIMUM');
     uint256 assets = previewRedeem(currentShares);
     _updateExchangeRate(_getExchangeRate(assets + amount, currentShares));
 
@@ -425,6 +388,7 @@ contract StakedTokenV3 is
     uint256 amountToClaim = (amount > newTotalRewards)
       ? newTotalRewards
       : amount;
+    require(amountToClaim != 0, 'INVALID_ZERO_AMOUNT');
 
     stakerRewardsToClaim[from] = newTotalRewards - amountToClaim;
     REWARD_TOKEN.safeTransferFrom(REWARDS_VAULT, to, amountToClaim);
@@ -433,7 +397,7 @@ contract StakedTokenV3 is
   }
 
   /**
-   * @dev Claims an `amount` of `REWARD_TOKEN` and restakes. Only the claim helper contract is allowed to call this function
+   * @dev Claims an `amount` of `REWARD_TOKEN` and restakes.
    * @param from The address of the from from which to claim
    * @param to Address to stake to
    * @param amount Amount to claim
@@ -535,8 +499,7 @@ contract StakedTokenV3 is
 
     _updateCurrentUnclaimedRewards(from, balanceOfFrom, true);
 
-    uint256 underlyingToRedeem = (amountToRedeem * EXCHANGE_RATE_UNIT) /
-      _currentExchangeRate;
+    uint256 underlyingToRedeem = previewRedeem(amountToRedeem);
 
     _burn(from, amountToRedeem);
 
@@ -560,6 +523,7 @@ contract StakedTokenV3 is
    * @param newExchangeRate the new exchange rate
    */
   function _updateExchangeRate(uint216 newExchangeRate) internal virtual {
+    require(newExchangeRate != 0, 'ZERO_EXCHANGE_RATE');
     _currentExchangeRate = newExchangeRate;
     emit ExchangeRateChanged(newExchangeRate);
   }

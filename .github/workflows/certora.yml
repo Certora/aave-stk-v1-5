@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - certora
   pull_request:
     branches:
       - main
@@ -24,7 +23,7 @@ jobs:
         env:
           CERTORAKEY: ${{ secrets.CERTORAKEY }}
         run: echo "key length" ${#CERTORAKEY}
-      
+
       - name: Install python
         uses: actions/setup-python@v2
         with: { python-version: 3.9 }
@@ -35,13 +34,13 @@ jobs:
 
       - name: Install certora cli
         run: pip install certora-cli
-        
+
       - name: Install solc
         run: |
           wget https://github.com/ethereum/solidity/releases/download/v0.8.17/solc-static-linux
           chmod +x solc-static-linux
           sudo mv solc-static-linux /usr/local/bin/solc8.17
-      
+
       - name: Verify rule ${{ matrix.rule }}
         run: |
           cd certora
@@ -52,36 +51,36 @@ jobs:
           sh certora/scripts/${{ matrix.rule }}
         env:
           CERTORAKEY: ${{ secrets.CERTORAKEY }}
-          
+
     strategy:
       fail-fast: false
       max-parallel: 16
       matrix:
         rule:
           - runPropertiesWithSummarization.sh allSharesAreBacked
-          - runPropertiesWithSummarization.sh allStakedAaveBacked
-          - runInvariants.sh exchangeRateCorrectness
+          - runInvariants.sh cooldownDataCorrectness
+          - runInvariants.sh cooldownAmountNotGreaterThanBalance
+          - runInvariants.sh lowerBoundNotZero
           - runInvariants.sh balanceOfZero
           - runInvariants.sh totalSupplyGreaterThanUserBalance
           - runInvariants.sh PersonalIndexLessOrEqualGlobalIndex
           - runAllProps.sh integrityOfStaking
+          - runAllProps.sh previewStakeEquivalentStake
           - runAllProps.sh noStakingPostSlashingPeriod
-          - runAllProps.sh stakeTokenBalanceAtLeastTotalSupply
-          - runAllProps.sh noSlashingMoreThanMax
-          - runAllProps.sh integrityOfSlashing
-          - runAllProps.sh integrityOfReturnFunds
-          - runAllProps.sh noEntryUntilSlashingSettled
-          - runAllProps.sh airdropNotMutualized
-          - runAllProps.sh noRedeemOutOfUnstakeWindow
-          - runAllProps.sh integrityOfRedeem
           - runAllProps.sh cooldownCorrectness
+          - runAllProps.sh integrityOfRedeem
+          - runAllProps.sh noRedeemOutOfUnstakeWindow
+          - runAllProps.sh integrityOfSlashing
+          - runAllProps.sh noSlashingMoreThanMax
+          - runAllProps.sh noEntryUntilSlashingSettled
+          - runAllProps.sh slashingIncreaseExchangeRate
+          - runAllProps.sh slashAndReturnFundsOfZeroDoesntChangeExchangeRate
+          - runAllProps.sh integrityOfReturnFunds
+          - runAllProps.sh returnFundsDecreaseExchangeRate
           - runAllProps.sh rewardsGetterEquivalentClaim
           - runAllProps.sh rewardsMonotonicallyIncrease
-          - runAllProps.sh collectedRewardsMonotonicallyIncrease
-          - runAllProps.sh indexesMonotonicallyIncrease
-          - runAllProps.sh slashingIncreaseExchangeRate
-          - runAllProps.sh returnFundsDecreaseExchangeRate
+          - runAllProps.sh rewardsIncreaseForNonClaimFunctions
+          - runAllProps.sh totalSupplyDoesNotDropToZero
           - runAllProps.sh exchangeRateNeverZero
-          - runAllProps.sh slashAndReturnFundsOfZeroDoesntChangeExchangeRate
-          - runAllProps.sh previewRedeemEquivalentRedeem
-          - runAllProps.sh previewStakeEquivalentStake
+          - runAllProps.sh airdropNotMutualized
+          - runAllProps.sh indexesMonotonicallyIncrease
