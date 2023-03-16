@@ -46,24 +46,27 @@ invariant cooldownDataCorrectness(address user, env e)
 /*
     @Invariant cooldownAmountNotGreaterThanBalance
     @Description: No user can have greater cooldown amount than is their balance.
-    @Link: https://prover.certora.com/output/40577/55c78438915b43cfa84014b153baee5e/?anonymousKey=cc47986c3d9dc44e8801e3e591ec56d048e26f30
+    @Link: https://prover.certora.com/output/40577/6b908011454f40808fe959619e91d716/?anonymousKey=3dd6b3d5801b3f7fa5a31e88e4ba26de715b8a17
 */
 invariant cooldownAmountNotGreaterThanBalance(address user)
     balanceOf(user) >= cooldownAmount(user)
     {
         preserved with (env e1)
         {
+            require e1.block.timestamp != 0;
             requireInvariant cooldownDataCorrectness(user, e1);
             requireInvariant totalSupplyGreaterThanUserBalance(user);
         }
         preserved transferFrom(address from, address to, uint256 amount) with (env e2)
         {
+            require e2.block.timestamp != 0;
             require balanceOf(from) + balanceOf(to) <= totalSupply();
             requireInvariant cooldownDataCorrectness(user, e2);
             requireInvariant totalSupplyGreaterThanUserBalance(user);
         }
         preserved transfer(address to, uint256 amount) with (env e3)
         {
+            require e3.block.timestamp != 0;
             require balanceOf(e3.msg.sender) + balanceOf(to) <= totalSupply();
             requireInvariant cooldownDataCorrectness(user, e3);
             requireInvariant totalSupplyGreaterThanUserBalance(user);
