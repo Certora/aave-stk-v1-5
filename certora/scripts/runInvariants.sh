@@ -1,8 +1,3 @@
-if [[ "$1" ]]
-then
-    RULE="--rule $1"
-fi
-
 certoraRun certora/harness/StakedAaveV3Harness.sol \
     certora/harness/DummyERC20Impl.sol \
     --link StakedAaveV3Harness:STAKED_TOKEN=DummyERC20Impl \
