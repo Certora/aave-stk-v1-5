@@ -1,0 +1,86 @@
+name: certora
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Check key
+        env:
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
+        run: echo "key length" ${#CERTORAKEY}
+
+      - name: Install python
+        uses: actions/setup-python@v2
+        with: { python-version: 3.9 }
+
+      - name: Install java
+        uses: actions/setup-java@v1
+        with: { java-version: "11", java-package: jre }
+
+      - name: Install certora cli
+        run: pip install certora-cli
+
+      - name: Install solc
+        run: |
+          wget https://github.com/ethereum/solidity/releases/download/v0.8.17/solc-static-linux
+          chmod +x solc-static-linux
+          sudo mv solc-static-linux /usr/local/bin/solc8.17
+
+      - name: Verify rule ${{ matrix.rule }}
+        run: |
+          cd certora
+          touch applyHarness.patch
+          make munged
+          cd ..
+          echo "key length" ${#CERTORAKEY}
+          sh certora/scripts/${{ matrix.rule }}
+        env:
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
+
+    strategy:
+      fail-fast: false
+      max-parallel: 16
+      matrix:
+        rule:
+          - runPropertiesWithSummarization.sh allSharesAreBacked
+          - runInvariants.sh cooldownDataCorrectness
+          - runInvariants.sh cooldownAmountNotGreaterThanBalance
+          - runInvariants.sh lowerBoundNotZero
+          - runInvariants.sh balanceOfZero
+          - runInvariants.sh totalSupplyGreaterThanUserBalance
+          - runInvariants.sh PersonalIndexLessOrEqualGlobalIndex
+          - runAllProps.sh integrityOfStaking
+          - runAllProps.sh previewStakeEquivalentStake
+          - runAllProps.sh noStakingPostSlashingPeriod
+          - runAllProps.sh cooldownCorrectness
+          - runAllProps.sh integrityOfRedeem
+          - runAllProps.sh noRedeemOutOfUnstakeWindow
+          - runAllProps.sh integrityOfSlashing
+          - runAllProps.sh noSlashingMoreThanMax
+          - runAllProps.sh noEntryUntilSlashingSettled
+          - runAllProps.sh slashingIncreaseExchangeRate
+          - runAllProps.sh slashAndReturnFundsOfZeroDoesntChangeExchangeRate
+          - runAllProps.sh integrityOfReturnFunds
+          - runAllProps.sh returnFundsDecreaseExchangeRate
+          - runAllProps.sh rewardsGetterEquivalentClaim
+          - runAllProps.sh rewardsMonotonicallyIncrease
+          - runAllProps.sh rewardsIncreaseForNonClaimFunctions
+          - runAllProps.sh totalSupplyDoesNotDropToZero
+          - runAllProps.sh exchangeRateNeverZero
+          - runAllProps.sh airdropNotMutualized
+          - runAllProps.sh indexesMonotonicallyIncrease
