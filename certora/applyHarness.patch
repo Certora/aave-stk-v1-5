@@ -1,13 +1,13 @@
 diff -ruN ../src/.gitignore .gitignore
 --- ../src/.gitignore	1970-01-01 02:00:00
-+++ .gitignore	2023-02-09 02:07:21
++++ .gitignore	2023-03-19 12:27:56
 @@ -0,0 +1,2 @@
 +*
 +!.gitignore
 diff -ruN ../src/contracts/StakedTokenV2.sol contracts/StakedTokenV2.sol
---- ../src/contracts/StakedTokenV2.sol	2023-02-09 02:08:43
-+++ contracts/StakedTokenV2.sol	2023-02-09 02:32:18
-@@ -109,6 +109,7 @@
+--- ../src/contracts/StakedTokenV2.sol	2023-03-19 12:10:59
++++ contracts/StakedTokenV2.sol	2023-03-19 12:27:56
+@@ -104,6 +104,7 @@
    /// @inheritdoc IStakedTokenV2
    function getTotalRewardsBalance(address staker)
      external
@@ -16,9 +16,9 @@ diff -ruN ../src/contracts/StakedTokenV2.sol contracts/StakedTokenV2.sol
      returns (uint256)
    {
 diff -ruN ../src/contracts/StakedTokenV3.sol contracts/StakedTokenV3.sol
---- ../src/contracts/StakedTokenV3.sol	2023-02-09 02:08:43
-+++ contracts/StakedTokenV3.sol	2023-02-09 02:34:42
-@@ -163,7 +163,7 @@
+--- ../src/contracts/StakedTokenV3.sol	2023-03-19 12:10:59
++++ contracts/StakedTokenV3.sol	2023-03-19 12:27:56
+@@ -162,7 +162,7 @@
    }
  
    /// @inheritdoc IStakedTokenV3
@@ -27,7 +27,7 @@ diff -ruN ../src/contracts/StakedTokenV3.sol contracts/StakedTokenV3.sol
      return (assets * _currentExchangeRate) / EXCHANGE_RATE_UNIT;
    }
  
-@@ -370,13 +370,14 @@
+@@ -333,13 +333,14 @@
    /// @inheritdoc IStakedTokenV3
    function setCooldownSeconds(uint256 cooldownSeconds)
      external

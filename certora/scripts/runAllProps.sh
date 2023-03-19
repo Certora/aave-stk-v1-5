@@ -1,8 +1,3 @@
-if [[ "$2" ]]
-then
-    RULE="--rule $2"
-fi
-
 certoraRun certora/harness/StakedAaveV3Harness.sol \
     certora/harness/DummyERC20Impl.sol \
     certora/harness/RewardVault.sol \
@@ -14,6 +9,6 @@ certoraRun certora/harness/StakedAaveV3Harness.sol \
     --cloud \
     --optimistic_loop \
     --loop_iter 3 \
-    --rules $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12} ${13} ${14} ${15} ${16} ${17} ${18} ${19} ${20} ${21} ${22} ${23} ${24} \
+    --rules $1 $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12} ${13} ${14} ${15} ${16} ${17} ${18} ${19} ${20} ${21} ${22} ${23} ${24} \
     --settings -t=600 \
-    --msg "all props $1"
+    --msg "all props"
