@@ -38,6 +38,8 @@ contract StakedTokenV3 is
   // as returnFunds can be called permissionless an attacker could spam returnFunds(1) to produce exchangeRate snapshots making voting expensive
   uint256 public immutable LOWER_BOUND;
 
+  // Reserved storage space to allow for layout changes in the future.
+  uint256[8] private ______gap;
   /// @notice Seconds between starting cooldown and being able to withdraw
   uint256 internal _cooldownSeconds;
   /// @notice The maximum amount of funds that can be slashed at any given time
@@ -441,7 +443,7 @@ contract StakedTokenV3 is
     require(amount != 0, 'INVALID_ZERO_AMOUNT');
 
     uint256 balanceOfTo = balanceOf(to);
-
+    
     uint256 accruedRewards = _updateUserAssetInternal(
       to,
       address(this),

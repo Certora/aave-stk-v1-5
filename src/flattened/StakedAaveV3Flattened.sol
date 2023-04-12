@@ -3568,6 +3568,8 @@ contract StakedTokenV3 is
   // as returnFunds can be called permissionless an attacker could spam returnFunds(1) to produce exchangeRate snapshots making voting expensive
   uint256 public immutable LOWER_BOUND;
 
+  // Reserved storage space to allow for layout changes in the future.
+  uint256[8] private ______gap;
   /// @notice Seconds between starting cooldown and being able to withdraw
   uint256 internal _cooldownSeconds;
   /// @notice The maximum amount of funds that can be slashed at any given time
@@ -4206,7 +4208,7 @@ contract StakedAaveV3 is StakedTokenV3, IStakedAaveV3 {
   IGhoVariableDebtTokenTransferHook public ghoDebtToken;
 
   function REVISION() public pure virtual override returns (uint256) {
-    return 4;
+    return 5;
   }
 
   constructor(
