@@ -57,30 +57,14 @@ jobs:
       max-parallel: 16
       matrix:
         rule:
-          - runPropertiesWithSummarization.sh allSharesAreBacked
-          - runInvariants.sh cooldownDataCorrectness
-          - runInvariants.sh cooldownAmountNotGreaterThanBalance
-          - runInvariants.sh lowerBoundNotZero
-          - runInvariants.sh balanceOfZero
-          - runInvariants.sh totalSupplyGreaterThanUserBalance
-          - runInvariants.sh PersonalIndexLessOrEqualGlobalIndex
-          - runAllProps.sh integrityOfStaking
-          - runAllProps.sh previewStakeEquivalentStake
-          - runAllProps.sh noStakingPostSlashingPeriod
-          - runAllProps.sh cooldownCorrectness
-          - runAllProps.sh integrityOfRedeem
-          - runAllProps.sh noRedeemOutOfUnstakeWindow
-          - runAllProps.sh integrityOfSlashing
-          - runAllProps.sh noSlashingMoreThanMax
-          - runAllProps.sh noEntryUntilSlashingSettled
-          - runAllProps.sh slashingIncreaseExchangeRate
-          - runAllProps.sh slashAndReturnFundsOfZeroDoesntChangeExchangeRate
-          - runAllProps.sh integrityOfReturnFunds
-          - runAllProps.sh returnFundsDecreaseExchangeRate
-          - runAllProps.sh rewardsGetterEquivalentClaim
-          - runAllProps.sh rewardsMonotonicallyIncrease
+          - runPropertiesWithSummarization.sh
+          - runInvariants.sh
+          - runAllProps.sh integrityOfSlashing integrityOfStaking previewStakeEquivalentStake noStakingPostSlashingPeriod noSlashingMoreThanMax noRedeemOutOfUnstakeWindow noEntryUntilSlashingSettled integrityOfRedeem cooldownCorrectness airdropNotMutualized integrityOfReturnFunds slashAndReturnFundsOfZeroDoesntChangeExchangeRate
           - runAllProps.sh rewardsIncreaseForNonClaimFunctions
-          - runAllProps.sh totalSupplyDoesNotDropToZero
-          - runAllProps.sh exchangeRateNeverZero
-          - runAllProps.sh airdropNotMutualized
+          - runAllProps.sh rewardsMonotonicallyIncrease
+          - runAllProps.sh rewardsGetterEquivalentClaim
           - runAllProps.sh indexesMonotonicallyIncrease
+          - runAllProps.sh exchangeRateNeverZero
+          - runAllProps.sh totalSupplyDoesNotDropToZero
+          - runAllProps.sh slashingIncreaseExchangeRate
+          - runAllProps.sh returnFundsDecreaseExchangeRate
