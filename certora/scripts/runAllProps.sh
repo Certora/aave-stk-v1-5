@@ -6,6 +6,7 @@ certoraRun certora/harness/StakedAaveV3Harness.sol \
     --link StakedAaveV3Harness:REWARDS_VAULT=RewardVault \
     --verify StakedAaveV3Harness:certora/specs/allProps.spec \
     --solc solc8.17 \
+    --send_only \
     --cloud \
     --optimistic_loop \
     --loop_iter 3 \
