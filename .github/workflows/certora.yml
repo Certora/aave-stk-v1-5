@@ -48,7 +48,7 @@ jobs:
           make munged
           cd ..
           echo "key length" ${#CERTORAKEY}
-          sh certora/scripts/${{ matrix.rule }}
+          certoraRun certora/conf/${{ matrix.rule }}
         env:
           CERTORAKEY: ${{ secrets.CERTORAKEY }}
 
@@ -57,30 +57,30 @@ jobs:
       max-parallel: 16
       matrix:
         rule:
-          - runPropertiesWithSummarization.sh allSharesAreBacked
-          - runInvariants.sh cooldownDataCorrectness
-          - runInvariants.sh cooldownAmountNotGreaterThanBalance
-          - runInvariants.sh lowerBoundNotZero
-          - runInvariants.sh balanceOfZero
-          - runInvariants.sh totalSupplyGreaterThanUserBalance
-          - runInvariants.sh PersonalIndexLessOrEqualGlobalIndex
-          - runAllProps.sh integrityOfStaking
-          - runAllProps.sh previewStakeEquivalentStake
-          - runAllProps.sh noStakingPostSlashingPeriod
-          - runAllProps.sh cooldownCorrectness
-          - runAllProps.sh integrityOfRedeem
-          - runAllProps.sh noRedeemOutOfUnstakeWindow
-          - runAllProps.sh integrityOfSlashing
-          - runAllProps.sh noSlashingMoreThanMax
-          - runAllProps.sh noEntryUntilSlashingSettled
-          - runAllProps.sh slashingIncreaseExchangeRate
-          - runAllProps.sh slashAndReturnFundsOfZeroDoesntChangeExchangeRate
-          - runAllProps.sh integrityOfReturnFunds
-          - runAllProps.sh returnFundsDecreaseExchangeRate
-          - runAllProps.sh rewardsGetterEquivalentClaim
-          - runAllProps.sh rewardsMonotonicallyIncrease
-          - runAllProps.sh rewardsIncreaseForNonClaimFunctions
-          - runAllProps.sh totalSupplyDoesNotDropToZero
-          - runAllProps.sh exchangeRateNeverZero
-          - runAllProps.sh airdropNotMutualized
-          - runAllProps.sh indexesMonotonicallyIncrease
+          - runPropertiesWithSummarization.sh --send_only --rule allSharesAreBacked
+          - runInvariants.sh --send_only --rule cooldownDataCorrectness
+          - runInvariants.sh --send_only --rule cooldownAmountNotGreaterThanBalance
+          - runInvariants.sh --send_only --rule lowerBoundNotZero
+          - runInvariants.sh --send_only --rule balanceOfZero
+          - runInvariants.sh --send_only --rule totalSupplyGreaterThanUserBalance
+          - runInvariants.sh --send_only --rule PersonalIndexLessOrEqualGlobalIndex
+          - runAllProps.sh --send_only --rule integrityOfStaking
+          - runAllProps.sh --send_only --rule previewStakeEquivalentStake
+          - runAllProps.sh --send_only --rule noStakingPostSlashingPeriod
+          - runAllProps.sh --send_only --rule cooldownCorrectness
+          - runAllProps.sh --send_only --rule integrityOfRedeem
+          - runAllProps.sh --send_only --rule noRedeemOutOfUnstakeWindow
+          - runAllProps.sh --send_only --rule integrityOfSlashing
+          - runAllProps.sh --send_only --rule noSlashingMoreThanMax
+          - runAllProps.sh --send_only --rule noEntryUntilSlashingSettled
+          - runAllProps.sh --send_only --rule slashingIncreaseExchangeRate
+          - runAllProps.sh --send_only --rule slashAndReturnFundsOfZeroDoesntChangeExchangeRate
+          - runAllProps.sh --send_only --rule integrityOfReturnFunds
+          - runAllProps.sh --send_only --rule returnFundsDecreaseExchangeRate
+          - runAllProps.sh --send_only --rule rewardsGetterEquivalentClaim
+          - runAllProps.sh --send_only --rule rewardsMonotonicallyIncrease
+          - runAllProps.sh --send_only --rule rewardsIncreaseForNonClaimFunctions
+          - runAllProps.sh --send_only --rule totalSupplyDoesNotDropToZero
+          - runAllProps.sh --send_only --rule exchangeRateNeverZero
+          - runAllProps.sh --send_only --rule airdropNotMutualized
+          - runAllProps.sh --send_only --rule indexesMonotonicallyIncrease
