@@ -4,7 +4,7 @@ certoraRun certora/conf/propertiesWithSummarization.conf --send_only --rule allS
 
 certoraRun certora/conf/invariants.conf --send_only --rule cooldownDataCorrectness --rule cooldownAmountNotGreaterThanBalance --rule lowerBoundNotZero --rule balanceOfZero --rule totalSupplyGreaterThanUserBalance --rule PersonalIndexLessOrEqualGlobalIndex
 
-certoraRun certora/conf/allProps --send_only \
+certoraRun certora/conf/allProps.conf --send_only \
            --rule integrityOfStaking \
            --rule previewStakeEquivalentStake \
            --rule noStakingPostSlashingPeriod \
@@ -25,3 +25,4 @@ certoraRun certora/conf/allProps --send_only \
            --rule exchangeRateNeverZero \
            --rule airdropNotMutualized \
            --rule indexesMonotonicallyIncrease
+
