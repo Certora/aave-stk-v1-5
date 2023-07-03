@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {StakedAaveV3} from '../munged/contracts/StakedAaveV3.sol';
-import {IERC20} from '../munged/interfaces/IERC20.sol';
+import {StakedAaveV3} from '../../src/contracts/StakedAaveV3.sol';
+import {IERC20} from '../../src/interfaces/IERC20.sol';
 
 contract StakedAaveV3Harness is StakedAaveV3 {
 

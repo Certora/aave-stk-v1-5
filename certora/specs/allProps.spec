@@ -274,7 +274,7 @@ rule noRedeemOutOfUnstakeWindow(address to, uint256 amount){
 
     // assert cooldown is inside the unstake window or it's a post slashing period
     assert inPostSlashingPeriod() ||
-        (to_mathint(e.block.timestamp) > to_mathint(cooldown) + getCooldownSeconds() &&
+        (to_mathint(e.block.timestamp) >= to_mathint(cooldown) + getCooldownSeconds() &&
          to_mathint(e.block.timestamp) - (to_mathint(cooldown) + getCooldownSeconds()) <= to_mathint(UNSTAKE_WINDOW()));
 }
 
